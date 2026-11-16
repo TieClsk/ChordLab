@@ -10,4 +10,5 @@
 - WASM 宿主 `engine-wasm`（C ABI）与 AudioWorklet 处理器、SharedArrayBuffer 命令环形缓冲。
 - 音频解码 `audio-io`（symphonia + rubato）。
 - Tauri 2 桌面壳原型。
-- 开发文档、ADR 0001–0006、Spike 000/001、贡献规范、Issue/PR 模板、CI。
+- 开源许可：MIT OR Apache-2.0（ADR-0007）、第三方声明、cargo-deny 许可证检查。
+- 开发文档、ADR 0001–0007、Spike 000/001、贡献规范、Issue/PR 模板、CI。

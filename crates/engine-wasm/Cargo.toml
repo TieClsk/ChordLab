@@ -4,6 +4,8 @@ description = "wasm32 build of the ChordLab engine with a plain C ABI, loaded di
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [lib]
 crate-type = ["cdylib"]

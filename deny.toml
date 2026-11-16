@@ -1,0 +1,29 @@
+# cargo-deny: license allow-list for everything linked into ChordLab (ADR-0007).
+[graph]
+all-features = true
+
+[licenses]
+confidence-threshold = 0.9
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "Unlicense",
+    "CC0-1.0",
+    "MPL-2.0", # file-level copyleft; used unmodified (symphonia, cssparser...)
+]
+
+[bans]
+multiple-versions = "allow"
+
+[advisories]
+ignore = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

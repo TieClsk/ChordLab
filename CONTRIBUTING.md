@@ -56,6 +56,11 @@ Refs #<issue>
 - [ ] 相关文档已更新（架构变化 → ADR；新模块 → README）
 - [ ] PR 已关联 Issue（`Closes #n`）
 
-## 6. 本地开发 / Local setup
+## 6. 许可 / License
+
+本项目代码采用 **MIT OR Apache-2.0** 双许可（[ADR-0007](docs/adr/0007-licensing.md)）。提交贡献即表示你同意按同一双许可授权你的贡献。
+新增 Rust 依赖必须通过 `cargo deny check licenses`；不得引入 GPL / AGPL 代码到主程序。
+
+## 7. 本地开发 / Local setup
 
 见 [docs/dev/setup.md](docs/dev/setup.md)。

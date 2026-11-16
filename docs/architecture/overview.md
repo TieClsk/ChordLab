@@ -26,7 +26,7 @@ flowchart TB
   end
   subgraph Web["浏览器"]
     Worklet["AudioWorklet\nengine-wasm"]
-    Fast["Web Worker\nessentia.js 快速分析"]
+    Fast["Web Worker\nRust/WASM 快速分析"]
   end
   Core[["engine-core（Rust）\n模型 · 调度 · 乐器 · 混音 · 导出"]]
   Bridge -- "16 字节命令" --> Cmd --> Native
@@ -45,6 +45,7 @@ flowchart TB
 | `engine-native` | cpal 驱动、rtrb 命令队列、引擎热替换、导出 CLI | 不含业务逻辑 |
 | `engine-wasm` | C ABI 导出，供 AudioWorklet 调用 | 不用 wasm-bindgen |
 | `audio-io` | 解码 WAV/FLAC/MP3/AAC/Vorbis，重采样 | 不播放 |
+| `analysis`（S4 新增） | 快速和弦/调/BPM 识别（色度 + 模板 + Viterbi） | 不依赖 AGPL 代码 |
 | `packages/engine-web` | AudioWorklet 处理器、SAB 环形缓冲、生成的 TS 类型、Web 版 `EngineBridge` | — |
 | `packages/theory` | 和弦/音阶/级数、和弦排序、进行推荐 | 不发声 |
 | `apps/web` | 所有界面、国际化、工程文档状态 | 不直接调用 Web Audio |
@@ -81,3 +82,4 @@ flowchart TB
 | [0004](../adr/0004-project-model-and-types.md) | 工程模型、类型共享、编辑策略 |
 | [0005](../adr/0005-sample-memory-budget.md) | 采样内存预算 |
 | [0006](../adr/0006-chord-analysis-deployment.md) | 和弦识别部署方式 |
+| [0007](../adr/0007-licensing.md) | 开源许可证（MIT OR Apache-2.0） |

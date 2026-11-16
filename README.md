@@ -39,3 +39,9 @@ docs/                  开发文档
 - 环境搭建 Setup：[docs/dev/setup.md](docs/dev/setup.md)
 - 流程与分支 Process：[CONTRIBUTING.md](CONTRIBUTING.md)
 - 文档索引 Docs index：[docs/README.md](docs/README.md)
+
+## 许可 / License
+
+代码采用 [MIT](LICENSE-MIT) 或 [Apache-2.0](LICENSE-APACHE) 双许可，任选其一。
+部分可选组件与数据为非商用许可，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+Code is dual-licensed under MIT or Apache-2.0. Some optional components and data are non-commercial; see the notices file.

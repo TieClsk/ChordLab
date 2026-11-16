@@ -4,6 +4,8 @@ description = "Native host for the ChordLab engine: offline render/export CLI an
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [[bin]]
 name = "chordlab-engine"

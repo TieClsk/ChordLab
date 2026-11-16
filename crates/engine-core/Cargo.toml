@@ -4,6 +4,8 @@ description = "ChordLab audio engine core: project model, scheduler, instruments
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [features]
 # Generates TypeScript types for the project model (run: cargo test -p engine-core --features ts)
