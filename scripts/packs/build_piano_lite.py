@@ -95,17 +95,41 @@ def build(src, out, source_commit=SOURCE_COMMIT):
     return manifest
 
 
+def default_source_dir():
+    """Upstream checkout location: outside target/ (restored by the Rust CI cache) and
+    outside public/ (bundled with the app)."""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    return os.path.join(repo_root, '.cache', 'pack-src', 'splendid-grand-piano')
+
+
+def source_is_usable(src, commit):
+    """True only for a git checkout at `commit` with every tracked file present and unmodified."""
+    if not os.path.isdir(os.path.join(src, '.git')):
+        return False
+    git = lambda *a: subprocess.run(['git', '-C', src, *a], capture_output=True, text=True)  # noqa: E731
+    if git('rev-parse', 'HEAD').stdout.strip() != commit:
+        return False
+    return git('diff', '--quiet', 'HEAD').returncode == 0
+
+
+def ensure_source(src, commit=SOURCE_COMMIT):
+    if source_is_usable(src, commit):
+        return
+    if os.path.exists(src):
+        shutil.rmtree(src)
+    os.makedirs(os.path.dirname(src), exist_ok=True)
+    subprocess.run(['git', 'clone', '--quiet', '--filter=blob:none', SOURCE_REPO, src], check=True)
+    subprocess.run(['git', '-C', src, 'checkout', '--quiet', commit], check=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--src', help='upstream checkout; cloned at the pinned commit if missing')
     ap.add_argument('--out', required=True)
     a = ap.parse_args()
-    # keep the upstream checkout out of public/ so it is never bundled with the app
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    src = a.src or os.path.join(repo_root, 'target', 'pack-src', 'splendid-grand-piano')
-    if not os.path.isdir(os.path.join(src, 'data')):
-        subprocess.run(['git', 'clone', '--quiet', '--filter=blob:none', SOURCE_REPO, src], check=True)
-        subprocess.run(['git', '-C', src, 'checkout', '--quiet', SOURCE_COMMIT], check=True)
+    src = a.src or default_source_dir()
+    if not a.src:
+        ensure_source(src)
     commit = subprocess.run(['git', '-C', src, 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip() or SOURCE_COMMIT
     if os.path.isdir(a.out):
         shutil.rmtree(a.out)
