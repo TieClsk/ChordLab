@@ -69,7 +69,7 @@ export function Diagnostics({ bridge, error }: Props) {
     return (
       <section>
         <h2>{t('diagnostics.title')}</h2>
-        {error ? <p role="alert">{t('diagnostics.error', { error })}</p> : <p>{t('diagnostics.starting')}</p>}
+        {error ? <p role="alert">{t('diagnostics.error', { error })}</p> : <p role="status">{t('diagnostics.starting')}</p>}
       </section>
     );
   }

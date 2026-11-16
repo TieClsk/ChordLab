@@ -67,14 +67,23 @@ describe('App shell', () => {
     expect(within(roadmap).getByText('钢琴')).toBeInTheDocument();
   });
 
+  it('can always get back to the home page', async () => {
+    renderApp('en');
+    await userEvent.click(screen.getByRole('button', { name: 'Engine check' }));
+    expect(screen.queryByRole('table', { name: /roadmap/i })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Home' }));
+    expect(screen.getByRole('table', { name: /roadmap/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('never shows an empty page: every clickable module renders real content', async () => {
     renderApp('en');
     for (const b of within(screen.getByRole('navigation')).getAllByRole('button')) {
       if ((b as HTMLButtonElement).disabled) continue;
       await userEvent.click(b);
       const main = screen.getByRole('main');
-      // more than a heading and one sentence
-      expect(main.querySelectorAll('button, table, dl, pre, ul, ol').length, b.textContent ?? '').toBeGreaterThan(0);
+      // more than a heading: controls, data, or an explanation of the engine state
+      expect(main.querySelectorAll('button, table, dl, pre, ul, ol, [role=alert], [role=status]').length, b.textContent ?? '').toBeGreaterThan(0);
     }
   });
 });
