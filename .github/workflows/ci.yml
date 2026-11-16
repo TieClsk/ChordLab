@@ -25,6 +25,11 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --exclude chordlab-desktop --all-targets -- -D warnings
       - run: cargo test --workspace --exclude chordlab-desktop --release
+      - name: Generated TS types and contract fixtures are up to date
+        run: |
+          cargo test -p engine-core --features ts --lib
+          UPDATE_FIXTURES=1 cargo test -p engine-core --test contract
+          git diff --exit-code -- packages/engine-web/src/types packages/engine-web/test/fixtures
 
   wasm-parity:
     name: WASM build + native/WASM bit-exact parity

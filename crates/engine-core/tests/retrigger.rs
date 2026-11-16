@@ -6,6 +6,7 @@ fn synth_project() -> Project {
     Project {
         tempo_bpm: 120.0,
         master_gain: 0.8,
+        delay_beats: 0.5,
         tracks: vec![Track {
             name: "s".into(),
             instrument: Instrument::Synth(SynthParams {

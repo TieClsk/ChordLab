@@ -227,31 +227,47 @@ pub fn pan_gains(pan: f32) -> (f32, f32) {
     (l, r)
 }
 
-/// Simple feedback delay used as a send effect.
+/// Ping-pong feedback delay used as a send effect. The buffer is allocated once for
+/// `max_len` frames; the active length can change without allocating (tempo sync).
 pub struct Delay {
     buf_l: Vec<f32>,
     buf_r: Vec<f32>,
+    len: usize,
     pos: usize,
     pub feedback: f32,
 }
 
 impl Delay {
-    pub fn new(len: usize) -> Self {
+    pub fn new(max_len: usize) -> Self {
+        let n = max_len.max(1);
         Delay {
-            buf_l: vec![0.0; len.max(1)],
-            buf_r: vec![0.0; len.max(1)],
+            buf_l: vec![0.0; n],
+            buf_r: vec![0.0; n],
+            len: n,
             pos: 0,
             feedback: 0.35,
         }
     }
+
+    /// Sets the delay time in frames (clamped to the buffer) and clears old echoes.
+    pub fn set_len(&mut self, frames: usize) {
+        self.len = frames.clamp(1, self.buf_l.len());
+        self.pos = 0;
+        self.buf_l.iter_mut().for_each(|x| *x = 0.0);
+        self.buf_r.iter_mut().for_each(|x| *x = 0.0);
+    }
+
+    pub fn frames(&self) -> usize {
+        self.len
+    }
+
     #[inline]
     pub fn process(&mut self, l: f32, r: f32) -> (f32, f32) {
         let (ol, or) = (self.buf_l[self.pos], self.buf_r[self.pos]);
-        // ping-pong
         self.buf_l[self.pos] = flush(l + or * self.feedback);
         self.buf_r[self.pos] = flush(r + ol * self.feedback);
         self.pos += 1;
-        if self.pos == self.buf_l.len() {
+        if self.pos >= self.len {
             self.pos = 0;
         }
         (ol, or)

@@ -118,6 +118,7 @@ pub fn progression(zones: Vec<SampleZone>, bars: u32) -> Project {
     Project {
         tempo_bpm: 96.0,
         master_gain: 0.9,
+        delay_beats: 0.5,
         tracks: vec![Track {
             name: "Grand".into(),
             instrument: Instrument::Sampler {

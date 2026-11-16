@@ -58,6 +58,7 @@ fn scheduling_is_sample_accurate() {
     let p = Project {
         tempo_bpm: 120.0,
         master_gain: 1.0,
+        delay_beats: 0.5,
         tracks: vec![Track {
             name: "d".into(),
             instrument: Instrument::Drums,

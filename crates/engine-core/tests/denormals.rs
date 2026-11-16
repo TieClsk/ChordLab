@@ -43,15 +43,18 @@ fn delay_tail_is_still_audible_before_it_is_flushed() {
     e.load_project(&p);
     e.apply(Command::Play);
     let (mut l, mut r) = (vec![0.0; 480], vec![0.0; 480]);
-    for _ in 0..300 {
+    // one bar at 120 BPM = 2 s of music, then stop exactly when it ends
+    for _ in 0..200 {
         e.process(&mut l, &mut r);
     }
     e.apply(Command::Stop);
-    for _ in 0..100 {
-        e.process(&mut l, &mut r); // 1 s after stop
+    let mut loudest = 0.0f32;
+    for _ in 0..50 {
+        e.process(&mut l, &mut r); // the first half second of the echo tail
+        loudest = l.iter().fold(loudest, |m, x| m.max(x.abs()));
     }
     assert!(
-        l.iter().any(|x| x.abs() > 1e-4),
-        "echoes one second after stop are still audible"
+        loudest > 1e-3,
+        "echoes right after the music ends must stay audible, got {loudest:e}"
     );
 }
