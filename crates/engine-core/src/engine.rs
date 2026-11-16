@@ -422,7 +422,28 @@ impl Engine {
                     Noise(0x9E37_79B9 ^ (self.voice_clock as u32).wrapping_mul(2_654_435_761));
             }
         }
-        let i = self.alloc_voice();
+        // Retrigger: a pitch that is still held on this track reuses its voice, so
+        // repeated NoteOns (key auto-repeat, overlapping clips) never stack (#42).
+        // Voices already in their release tail are left to ring out.
+        let held = self.voices.iter().position(|o| {
+            o.active
+                && o.track == track
+                && o.pitch == pitch
+                && o.kind != Kind::Drum
+                && o.env.stage != Stage::Release
+        });
+        let i = match held {
+            Some(i) => {
+                // keep phase/filter/envelope level for a click-free retrigger
+                let old = self.voices[i];
+                v.osc = old.osc;
+                v.osc2 = old.osc2;
+                v.svf = old.svf;
+                v.env.level = old.env.level;
+                i
+            }
+            None => self.alloc_voice(),
+        };
         self.voices[i] = v;
     }
 
