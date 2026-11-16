@@ -115,3 +115,34 @@ describe('keys', () => {
     }
   });
 });
+
+// Broad sweeps: every diatonic chord, every inversion, every major key.
+const KEYS = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F'];
+
+describe('sweeps across all 12 major keys', () => {
+  it.each(KEYS)('roman numerals round-trip in %s', (key) => {
+    for (const sevenths of [false, true]) {
+      const chords = diatonicChords(key, { sevenths });
+      const romans = chords.map((c) => romanNumeral(c, key));
+      expect(fromRomans(romans, key)).toEqual(chords);
+    }
+  });
+
+  it.each(KEYS)('every diatonic chord in every inversion is detected by name first in %s', (key) => {
+    for (const sevenths of [false, true]) {
+      for (const c of diatonicChords(key, { sevenths })) {
+        const size = chord(c).notes.length;
+        for (let inv = 0; inv < size; inv++) {
+          const midi = chordMidi(c, { octave: 3, inversion: inv });
+          const got = detectChord(midi, { key })[0];
+          // Some chords are the same notes under two names (Dm7/F = F6). The invariant
+          // is that the detected chord has exactly the played pitch classes and bass.
+          const pcs = (ms: number[]) => [...new Set(ms.map((m) => m % 12))].sort((x, y) => x - y);
+          expect(got, `${key}: ${c} inv ${inv}`).toBeDefined();
+          expect(pcs(chordMidi(got!, { octave: 3 })), `${key}: ${c} inv ${inv} -> ${got}`).toEqual(pcs(midi));
+          expect(Math.min(...chordMidi(got!, { octave: 3 })) % 12, `${key}: ${c} inv ${inv} bass -> ${got}`).toBe(Math.min(...midi) % 12);
+        }
+      }
+    }
+  });
+});
