@@ -38,11 +38,22 @@ fn repeated_note_on_retriggers_instead_of_stacking() {
     let mut e = Engine::new(48_000.0);
     e.load_project(&synth_project());
     for _ in 0..5 {
-        e.apply(Command::NoteOn { track: 0, pitch: 60, velocity: 100 });
+        e.apply(Command::NoteOn {
+            track: 0,
+            pitch: 60,
+            velocity: 100,
+        });
         run(&mut e, 0.02);
     }
-    assert_eq!(e.active_voices(), 1, "same pitch held five times should be one voice");
-    e.apply(Command::NoteOff { track: 0, pitch: 60 });
+    assert_eq!(
+        e.active_voices(),
+        1,
+        "same pitch held five times should be one voice"
+    );
+    e.apply(Command::NoteOff {
+        track: 0,
+        pitch: 60,
+    });
     run(&mut e, 0.5);
     assert_eq!(e.active_voices(), 0, "one NoteOff must silence the note");
 }
@@ -54,7 +65,11 @@ fn chord_held_with_key_repeat_releases_cleanly() {
     e.load_project(&synth_project());
     for _ in 0..20 {
         for p in [60, 64, 67] {
-            e.apply(Command::NoteOn { track: 0, pitch: p, velocity: 100 });
+            e.apply(Command::NoteOn {
+                track: 0,
+                pitch: p,
+                velocity: 100,
+            });
         }
         run(&mut e, 0.03);
     }
@@ -72,11 +87,22 @@ fn same_pitch_on_different_tracks_is_independent() {
     p.tracks.push(p.tracks[0].clone());
     let mut e = Engine::new(48_000.0);
     e.load_project(&p);
-    e.apply(Command::NoteOn { track: 0, pitch: 60, velocity: 100 });
-    e.apply(Command::NoteOn { track: 1, pitch: 60, velocity: 100 });
+    e.apply(Command::NoteOn {
+        track: 0,
+        pitch: 60,
+        velocity: 100,
+    });
+    e.apply(Command::NoteOn {
+        track: 1,
+        pitch: 60,
+        velocity: 100,
+    });
     run(&mut e, 0.02);
     assert_eq!(e.active_voices(), 2);
-    e.apply(Command::NoteOff { track: 0, pitch: 60 });
+    e.apply(Command::NoteOff {
+        track: 0,
+        pitch: 60,
+    });
     run(&mut e, 0.5);
     assert_eq!(e.active_voices(), 1);
 }
@@ -90,14 +116,28 @@ fn a_released_note_can_ring_out_while_the_same_pitch_is_played_again() {
         s.release_s = 1.0;
     }
     e.load_project(&p);
-    e.apply(Command::NoteOn { track: 0, pitch: 60, velocity: 100 });
+    e.apply(Command::NoteOn {
+        track: 0,
+        pitch: 60,
+        velocity: 100,
+    });
     run(&mut e, 0.05);
-    e.apply(Command::NoteOff { track: 0, pitch: 60 });
+    e.apply(Command::NoteOff {
+        track: 0,
+        pitch: 60,
+    });
     run(&mut e, 0.05);
-    e.apply(Command::NoteOn { track: 0, pitch: 60, velocity: 100 });
+    e.apply(Command::NoteOn {
+        track: 0,
+        pitch: 60,
+        velocity: 100,
+    });
     run(&mut e, 0.02);
     assert_eq!(e.active_voices(), 2, "releasing tail + new note");
-    e.apply(Command::NoteOff { track: 0, pitch: 60 });
+    e.apply(Command::NoteOff {
+        track: 0,
+        pitch: 60,
+    });
     run(&mut e, 1.5);
     assert_eq!(e.active_voices(), 0);
 }

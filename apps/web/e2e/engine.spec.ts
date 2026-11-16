@@ -22,6 +22,19 @@ test('holding a chord sounds three voices, releasing lets them end', async ({ pa
   await expect(voices).toHaveText('0', { timeout: 5000 });
 });
 
+test('holding a number key does not stack voices and releases cleanly (#42)', async ({ page }) => {
+  const voices = page.getByTestId('active-voices');
+  for (let i = 0; i < 15; i++) {
+    await page.keyboard.down('1'); // repeated down on a held key = auto-repeat
+    await page.waitForTimeout(40);
+  }
+  await expect(voices).toHaveText('3');
+  await page.waitForTimeout(600); // several status re-renders while held
+  await expect(voices).toHaveText('3');
+  await page.keyboard.up('1');
+  await expect(voices).toHaveText('0', { timeout: 5000 });
+});
+
 test('self-test measures every note through the bridge', async ({ page }) => {
   await page.getByRole('button', { name: /run self-test/i }).click();
   const pre = page.locator('pre');
