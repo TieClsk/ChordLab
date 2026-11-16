@@ -42,6 +42,46 @@ describe('Diagnostics', () => {
     expect(b.sent.filter((x) => x.type === 'noteOff')).toHaveLength(3);
   });
 
+  // #42: OS key auto-repeat and periodic status re-renders must not stack chords
+  it('keyboard chords ignore auto-repeat and survive re-renders', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const b = new FakeBridge();
+    setup(b);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    const key = (type: 'keydown' | 'keyup', repeat = false) =>
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent(type, { key: '1', repeat }));
+      });
+    key('keydown');
+    for (let i = 0; i < 10; i++) {
+      key('keydown', true); // OS auto-repeat
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300); // status poll re-renders the page
+      });
+    }
+    key('keydown'); // some platforms repeat without the flag
+    expect(b.sent.filter((x) => x.type === 'noteOn')).toHaveLength(3);
+    key('keyup');
+    expect(b.sent.filter((x) => x.type === 'noteOff')).toHaveLength(3);
+    expect(b.voices).toBe(0);
+    vi.useRealTimers();
+  });
+
+  it('releases held keyboard chords when the window loses focus', async () => {
+    const b = new FakeBridge();
+    setup(b);
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: '2' }));
+    });
+    expect(b.voices).toBe(3);
+    act(() => {
+      window.dispatchEvent(new Event('blur'));
+    });
+    expect(b.voices).toBe(0);
+  });
+
   it('plays the demo from the start and stops it', async () => {
     const b = new FakeBridge();
     const user = setup(b);
