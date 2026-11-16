@@ -2,8 +2,8 @@
 """Seed a GitHub repo with ChordLab's labels, sprint milestones and backlog issues.
 
 Idempotent: existing labels/milestones/issues (matched by title) are skipped.
-Usage:  python scripts/github/bootstrap.py OWNER/REPO [--dry-run]
-Requires the GitHub CLI (`gh`) authenticated with repo scope.
+Usage:  python scripts/github/bootstrap.py OWNER/REPO [--dry-run] [--assignee LOGIN]
+Requires the GitHub CLI (`gh`). Uses only the REST API (`gh api`), no GraphQL.
 """
 import json
 import subprocess
@@ -11,16 +11,24 @@ import sys
 
 REPO = sys.argv[1]
 DRY = "--dry-run" in sys.argv
+ASSIGNEE = sys.argv[sys.argv.index("--assignee") + 1] if "--assignee" in sys.argv else None
 
 
-def gh(*args, input=None):
+def api(method, path, body=None):
+    """REST call through `gh api`; returns parsed JSON (lists are fully paginated for GET)."""
     if DRY:
-        print("DRY gh", " ".join(args)[:160])
-        return "[]"
-    r = subprocess.run(["gh", *args], input=input, capture_output=True, text=True)
+        print("DRY", method, path, (json.dumps(body, ensure_ascii=False)[:100] if body else ""))
+        return [] if method == "GET" else {"number": 0, "html_url": ""}
+    args = ["gh", "api", "--method", method, path]
+    if method == "GET":
+        args.append("--paginate")
+    r = subprocess.run(args + (["--input", "-"] if body is not None else []), input=json.dumps(body) if body is not None else None, capture_output=True, text=True)
     if r.returncode != 0:
-        raise RuntimeError(r.stderr.strip())
-    return r.stdout
+        raise RuntimeError(f"{method} {path}: {r.stderr.strip()}")
+    out = r.stdout.strip()
+    if method == "GET" and out.startswith("[") and "][" in out:  # --paginate concatenates arrays
+        out = out.replace("][", ",")
+    return json.loads(out) if out else None
 
 
 LABELS = {
@@ -42,6 +50,8 @@ LABELS = {
     "prio:could": ("fbca04", "MoSCoW: Could"),
     "status:ready": ("0e8a16", "满足就绪定义"),
     "status:blocked": ("000000", "被阻塞"),
+    "type:ux-test": ("5319e7", "用户体验测试会话（由产品负责人执行）"),
+    "type:ux-feedback": ("e99695", "用户体验反馈"),
     "backlog": ("ededed", "产品待办"),
 }
 
@@ -78,8 +88,26 @@ ISSUES = [
            "协议见 ADR-0003；worklet 中无 TextEncoder，工程 JSON 在主线程编码。"), False),
     ("[Story] INF-2 Web 前端骨架：React + Vite + TypeScript + i18next（中/英）", ["type:story", "epic:infra", "prio:must", "status:ready"], "S0",
      story("作为用户，我希望界面支持中英文切换，以便用我习惯的语言学习。", ["apps/web 可在 Vite 下运行，并被 Tauri 加载", "所有文本走翻译键，提供 zh-CN 与 en", "语言切换即时生效并被记住", "ESLint + Vitest 接入 CI"]), False),
-    ("[Spike] SPK-3 真机音频延迟与稳定性（macOS / Windows）", ["type:spike", "epic:infra", "prio:must"], "S0",
-     "在开发者电脑上运行 `cargo run --release -p chordlab-desktop` 与 `chordlab-engine bench`，记录：输出设备、缓冲大小、回调数/秒、最大回调耗时、主观延迟。容器内的 ALSA 空设备无法验证这些。", False),
+    ("[UX] S0 用户体验测试：真机音频与听感（含 SPK-3）", ["type:ux-test", "type:spike", "epic:infra", "prio:must"], "S0",
+     """### 背景
+容器里没有真实声卡，桌面原型的音频延迟与稳定性只能在你的电脑上验证。
+
+### 怎么拿到测试版本
+打开 PR / main 最新一次 **Preview builds** 运行，在 Artifacts 下载对应系统的安装包（macOS 首次打开请右键 → 打开）。
+
+### 任务
+1. 安装并打开 ChordLab，等待约 15 秒的自动测量完成，点 **复制结果** 并粘贴到本 Issue 评论。
+2. 点 **播放演示**，完整听一遍：有没有爆音、断续、杂音？音色自然吗？
+3. 按住 C / G / Am / F 按钮（或键盘 1–4）：按下到出声，有没有感觉到延迟？
+4. 快速连续按和弦 20 次：有没有卡顿、漏音或残留长音？
+
+### 每个任务请记录
+完成与否 · 主观评分 1–5 · 遇到的问题（问题请用 “UX 反馈” 模板另开 Issue）
+
+### 验收
+- [ ] 测量结果已贴出（含 device、bufferMs、maxCallbackUs、noteToVoiceMedianMs）
+- [ ] 听感无阻断级问题，或已开 UX 反馈 Issue
+""", False),
     ("[Story] INF-4 采样存储支持 i16 与立体声", ["type:story", "epic:infra", "prio:must"], "S1",
      story("作为用户，我希望钢琴音色占用更少内存且保留立体声。", ["采样可用 i16 存储，内存减半", "立体声采样左右声道独立播放", "原生 / WASM 一致性测试仍通过"], "ADR-0005"), False),
     ("[Story] INF-5 构建期 Lite 钢琴采样包脚本", ["type:story", "epic:E4-sound", "prio:must"], "S1",
@@ -137,26 +165,31 @@ ISSUES = [
 
 
 def main():
-    existing_labels = {l["name"] for l in json.loads(gh("label", "list", "-R", REPO, "--limit", "200", "--json", "name") or "[]")}
+    have = {l["name"] for l in api("GET", f"repos/{REPO}/labels?per_page=100")}
     for name, (color, desc) in LABELS.items():
-        if name not in existing_labels:
-            gh("label", "create", name, "-R", REPO, "--color", color, "--description", desc)
-    existing_ms = {m["title"]: m["number"] for m in json.loads(gh("api", f"repos/{REPO}/milestones?state=all&per_page=100") or "[]")}
+        if name not in have:
+            api("POST", f"repos/{REPO}/labels", {"name": name, "color": color, "description": desc})
+            print("label", name)
+    ms = {m["title"]: m["number"] for m in api("GET", f"repos/{REPO}/milestones?state=all&per_page=100")}
     for title, due, desc in MILESTONES:
-        if title not in existing_ms:
-            args = ["api", f"repos/{REPO}/milestones", "-f", f"title={title}", "-f", f"description={desc}"]
+        if title not in ms:
+            body = {"title": title, "description": desc}
             if due:
-                args += ["-f", f"due_on={due}T23:59:59Z"]
-            gh(*args)
-    existing_issues = {i["title"] for i in json.loads(gh("issue", "list", "-R", REPO, "--state", "all", "--limit", "500", "--json", "title") or "[]")}
-    for title, labels, ms, body, closed in ISSUES:
-        if title in existing_issues:
+                body["due_on"] = f"{due}T23:59:59Z"
+            ms[title] = api("POST", f"repos/{REPO}/milestones", body)["number"]
+            print("milestone", title)
+    existing = {i["title"] for i in api("GET", f"repos/{REPO}/issues?state=all&per_page=100")}
+    for title, labels, milestone, body, closed in ISSUES:
+        if title in existing:
             continue
         labels = labels + ([] if closed else ["backlog"])
-        url = gh("issue", "create", "-R", REPO, "--title", title, "--body", body, "--milestone", ms, *sum((["--label", l] for l in labels), [])).strip()
-        print("created", url or title)
-        if closed and url:
-            gh("issue", "close", url, "--reason", "completed")
+        payload = {"title": title, "body": body, "labels": labels, "milestone": ms[milestone]}
+        if ASSIGNEE and "type:ux-test" in labels:
+            payload["assignees"] = [ASSIGNEE]
+        issue = api("POST", f"repos/{REPO}/issues", payload)
+        print("issue", issue["number"], title)
+        if closed:
+            api("PATCH", f"repos/{REPO}/issues/{issue['number']}", {"state": "closed", "state_reason": "completed"})
 
 
 if __name__ == "__main__":

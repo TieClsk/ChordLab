@@ -1,0 +1,47 @@
+name: UX 反馈 / UX feedback
+description: 用户体验测试中发现的问题或建议 / Issue or idea found during UX testing
+title: "[UX] "
+labels: ["type:ux-feedback"]
+body:
+  - type: input
+    id: build
+    attributes:
+      label: 测试版本 / Build
+      description: CI 运行编号或版本号，以及操作系统
+      placeholder: "CI #42 · macOS 15"
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: 我想做的事 / What I was trying to do
+      placeholder: 想弹出 Am 和弦，然后找到推荐的下一个和弦
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: 实际发生了什么 / What happened
+      description: 哪里卡住、哪里看不懂、听到了什么（爆音、延迟、音色怪）。截图或录屏可直接粘贴。
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重程度 / Severity
+      options:
+        - 阻断：无法完成任务 / Blocker
+        - 严重：能完成但很别扭 / Major
+        - 轻微：小瑕疵 / Minor
+        - 建议：新想法 / Idea
+    validations:
+      required: true
+  - type: dropdown
+    id: score
+    attributes:
+      label: 这个任务的体验评分 / Rating (1–5)
+      options: ["1", "2", "3", "4", "5"]
+  - type: textarea
+    id: expectation
+    attributes:
+      label: 我期望的样子 / What I expected
