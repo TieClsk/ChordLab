@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh">
+<meta charset="utf-8">
+<title>ChordLab</title>
+<body style="font-family: system-ui; padding: 24px">
+<h1>ChordLab desktop spike</h1>
+<pre id="out">running…</pre>
+<script>
+// Measures (1) Tauri IPC round-trip for engine commands, (2) audio callback health,
+// (3) command -> sounding voice latency through the native engine.
+const { invoke } = window.__TAURI__.core;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const pct = (a, p) => a.slice().sort((x, y) => x - y)[Math.floor(a.length * p)];
+(async () => {
+  const r = { webview: navigator.userAgent };
+  const ipc = [];
+  for (let i = 0; i < 500; i++) { const t = performance.now(); await invoke('engine_cmd', { w: [6, 0, 0, 0] }); ipc.push(performance.now() - t); }
+  r.ipcMedianMs = +pct(ipc, 0.5).toFixed(3); r.ipcP95Ms = +pct(ipc, 0.95).toFixed(3);
+  r.loaded = await invoke('load_demo', { bars: 8 });
+  const s0 = await invoke('engine_status'); await sleep(2000); const s1 = await invoke('engine_status');
+  if (!s1.error) {
+    r.device = s1.device; r.sampleRate = s1.sampleRate; r.framesPerCallback = s1.framesPerCallback;
+    r.callbacksPerSec = Math.round((s1.callbacks - s0.callbacks) / 2);
+    r.audioSecondsAdvancedIn2s = +((s1.position - s0.position) / s1.sampleRate).toFixed(2);
+    r.maxCallbackUs = s1.maxCallbackUs; r.voicesWhilePlaying = s1.voices;
+    // note-on latency: stop transport, then time NoteOn -> voice count increases
+    await invoke('engine_cmd', { w: [2, 0, 0, 0] }); await sleep(800);
+    const lat = [];
+    for (let i = 0; i < 30; i++) {
+      const before = (await invoke('engine_status')).voices; const t = performance.now();
+      await invoke('engine_cmd', { w: [4, 0, 60 + (i % 12), 100] });
+      while ((await invoke('engine_status')).voices <= before && performance.now() - t < 300) {}
+      lat.push(performance.now() - t);
+      await invoke('engine_cmd', { w: [5, 0, 60 + (i % 12), 0] }); await sleep(250);
+    }
+    r.noteToVoiceMedianMs = +pct(lat, 0.5).toFixed(2); r.noteToVoiceP95Ms = +pct(lat, 0.95).toFixed(2);
+  } else r.audio = s1.error;
+  document.getElementById('out').textContent = JSON.stringify(r, null, 2);
+  await invoke('report', { json: JSON.stringify(r) });
+})().catch((e) => invoke('report', { json: JSON.stringify({ error: String(e) }) }));
+</script>
+</body>
+</html>

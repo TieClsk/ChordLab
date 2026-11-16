@@ -1,0 +1,16 @@
+[package]
+name = "chordlab-desktop"
+description = "ChordLab desktop shell (Tauri 2) with the native audio engine"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+engine-core = { path = "../../../crates/engine-core" }
+engine-native = { path = "../../../crates/engine-native", features = ["realtime"] }

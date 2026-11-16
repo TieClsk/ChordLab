@@ -1,0 +1,13 @@
+[package]
+name = "engine-wasm"
+description = "wasm32 build of the ChordLab engine with a plain C ABI, loaded directly inside an AudioWorkletProcessor (no wasm-bindgen glue)."
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+engine-core = { path = "../engine-core" }
+serde_json = { workspace = true }

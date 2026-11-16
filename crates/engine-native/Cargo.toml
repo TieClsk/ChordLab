@@ -1,0 +1,21 @@
+[package]
+name = "engine-native"
+description = "Native host for the ChordLab engine: offline render/export CLI and (feature `realtime`) a cpal audio driver with a lock-free command queue."
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "chordlab-engine"
+path = "src/main.rs"
+
+[features]
+default = []
+realtime = ["dep:cpal"]
+
+[dependencies]
+engine-core = { path = "../engine-core" }
+audio-io = { path = "../audio-io" }
+serde_json = { workspace = true }
+rtrb = "0.3"
+cpal = { version = "0.15", optional = true }
