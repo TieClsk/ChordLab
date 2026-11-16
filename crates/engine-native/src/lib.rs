@@ -6,6 +6,49 @@
 //! Project / sample loads are prepared off the audio thread and swapped in through a
 //! second SPSC queue of boxed engines, so the callback never allocates or blocks.
 
+/// Tracks the slowest audio callback per window (about one second of audio) and over
+/// the whole session (#48). Plain integers, no allocation: safe on the audio thread.
+pub struct PeakWindow {
+    window_frames: u64,
+    frames: u64,
+    current_ns: u64,
+    last_ns: u64,
+    session_ns: u64,
+}
+
+impl PeakWindow {
+    pub fn new(window_frames: u64) -> Self {
+        PeakWindow {
+            window_frames: window_frames.max(1),
+            frames: 0,
+            current_ns: 0,
+            last_ns: 0,
+            session_ns: 0,
+        }
+    }
+
+    #[inline]
+    pub fn record(&mut self, frames: u64, ns: u64) {
+        self.current_ns = self.current_ns.max(ns);
+        self.session_ns = self.session_ns.max(ns);
+        self.frames += frames;
+        if self.frames >= self.window_frames {
+            self.last_ns = self.current_ns;
+            self.current_ns = 0;
+            self.frames = 0;
+        }
+    }
+
+    /// Peak of the last completed window, or of the current one if that is higher.
+    pub fn recent_ns(&self) -> u64 {
+        self.last_ns.max(self.current_ns)
+    }
+
+    pub fn session_ns(&self) -> u64 {
+        self.session_ns
+    }
+}
+
 #[cfg(feature = "realtime")]
 pub mod realtime {
     use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
@@ -20,6 +63,8 @@ pub mod realtime {
         pub voices: AtomicU64,
         pub callbacks: AtomicU64,
         pub max_callback_ns: AtomicU64,
+        /// slowest callback in roughly the last second (#48)
+        pub recent_max_callback_ns: AtomicU64,
         pub last_frames: AtomicU64,
     }
 
@@ -93,6 +138,7 @@ pub mod realtime {
             let status = Arc::new(Status::default());
             let st = status.clone();
             let mut engine = Box::new(Engine::new(sample_rate as f32));
+            let mut peaks = crate::PeakWindow::new(sample_rate as u64);
             let mut l = vec![0.0f32; 8192];
             let mut r = vec![0.0f32; 8192];
             let stream = device
@@ -123,8 +169,11 @@ pub mod realtime {
                             .store(engine.active_voices() as u64, Ordering::Relaxed);
                         st.callbacks.fetch_add(1, Ordering::Relaxed);
                         st.last_frames.store(frames as u64, Ordering::Relaxed);
+                        peaks.record(frames as u64, t.elapsed().as_nanos() as u64);
                         st.max_callback_ns
-                            .fetch_max(t.elapsed().as_nanos() as u64, Ordering::Relaxed);
+                            .store(peaks.session_ns(), Ordering::Relaxed);
+                        st.recent_max_callback_ns
+                            .store(peaks.recent_ns(), Ordering::Relaxed);
                     },
                     |e| eprintln!("audio stream error: {e}"),
                     None,

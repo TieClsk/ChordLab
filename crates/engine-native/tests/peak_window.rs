@@ -10,11 +10,19 @@ fn reports_the_peak_of_each_completed_window() {
         w.record(480, 100_000);
     }
     w.record(480, 900_000); // spike in the first second
-    assert_eq!(w.recent_ns(), 900_000, "window of 100 x 480 frames = 1 s completed");
+    assert_eq!(
+        w.recent_ns(),
+        900_000,
+        "window of 100 x 480 frames = 1 s completed"
+    );
     for _ in 0..100 {
         w.record(480, 120_000);
     }
-    assert_eq!(w.recent_ns(), 120_000, "the old spike ages out after one second");
+    assert_eq!(
+        w.recent_ns(),
+        120_000,
+        "the old spike ages out after one second"
+    );
     assert_eq!(w.session_ns(), 900_000, "but stays in the session peak");
 }
 

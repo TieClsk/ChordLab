@@ -19,9 +19,17 @@ fn delay_tail_never_becomes_subnormal() {
         }
         e.process(&mut l, &mut r);
         let bad = l.iter().chain(r.iter()).find(|x| x.is_subnormal());
-        assert!(bad.is_none(), "subnormal output {:e} at {:.2} s", bad.unwrap(), b as f32 / 100.0);
+        assert!(
+            bad.is_none(),
+            "subnormal output {:e} at {:.2} s",
+            bad.unwrap(),
+            b as f32 / 100.0
+        );
     }
-    assert!(l.iter().chain(r.iter()).all(|x| *x == 0.0), "tail should end in exact silence");
+    assert!(
+        l.iter().chain(r.iter()).all(|x| *x == 0.0),
+        "tail should end in exact silence"
+    );
 }
 
 #[test]
@@ -42,5 +50,8 @@ fn delay_tail_is_still_audible_before_it_is_flushed() {
     for _ in 0..100 {
         e.process(&mut l, &mut r); // 1 s after stop
     }
-    assert!(l.iter().any(|x| x.abs() > 1e-4), "echoes one second after stop are still audible");
+    assert!(
+        l.iter().any(|x| x.abs() > 1e-4),
+        "echoes one second after stop are still audible"
+    );
 }

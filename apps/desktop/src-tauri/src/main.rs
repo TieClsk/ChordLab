@@ -33,6 +33,7 @@ fn engine_status(state: tauri::State<AppState>) -> serde_json::Value {
                 "device": h.device_name, "sampleRate": h.sample_rate,
                 "position": s.position.load(Ordering::Relaxed), "voices": s.voices.load(Ordering::Relaxed),
                 "callbacks": s.callbacks.load(Ordering::Relaxed), "maxCallbackUs": s.max_callback_ns.load(Ordering::Relaxed) as f64 / 1e3,
+                "recentMaxCallbackUs": s.recent_max_callback_ns.load(Ordering::Relaxed) as f64 / 1e3,
                 "framesPerCallback": s.last_frames.load(Ordering::Relaxed)
             })
         }
