@@ -5,6 +5,7 @@ members = [
     "crates/engine-wasm",
     "crates/engine-native",
     "crates/audio-io",
+    "crates/sample-packs",
     "apps/desktop/src-tauri",
 ]
 

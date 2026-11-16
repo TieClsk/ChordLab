@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     match args.get(1).map(String::as_str) {
+        Some("pack-render") => pack_render(&args[2], &args[3]),
         Some("piano") => {
             let pl = piano::load(std::path::Path::new(&args[2]));
             println!(
@@ -233,4 +234,99 @@ fn rt_sim() {
         period.as_secs_f64() * 1e6,
         block as f64 / sr as f64 * 1e3
     );
+}
+
+/// Renders a short listening demo with a sample pack (#9): soft chords, a melody and
+/// a few loud notes, so both velocity layers can be heard.
+fn pack_render(dir: &str, out: &str) {
+    let sr = 48_000.0;
+    let t = Instant::now();
+    let pack = sample_packs::load_pack(std::path::Path::new(dir)).unwrap_or_else(|e| panic!("{e}"));
+    println!(
+        "{}: {} samples, {:.1} MB in memory, loaded in {:.0} ms",
+        pack.manifest.name,
+        pack.samples.len(),
+        pack.memory_bytes() as f64 / 1e6,
+        t.elapsed().as_secs_f64() * 1e3
+    );
+    let chords: [&[u8]; 4] = [
+        &[48, 55, 60, 64, 67],
+        &[43, 55, 59, 62, 67],
+        &[45, 57, 60, 64, 69],
+        &[41, 57, 60, 65, 69],
+    ];
+    let melody = [72u8, 74, 76, 79, 77, 76, 74, 72];
+    let mut notes = Vec::new();
+    for (bar, c) in chords.iter().enumerate() {
+        let s = bar as f64 * 4.0;
+        for (i, &p) in c.iter().enumerate() {
+            notes.push(Note {
+                start: s + i as f64 * 0.03,
+                length: 3.6,
+                pitch: p,
+                velocity: 70 + i as u8 * 4,
+            });
+        }
+        notes.push(Note {
+            start: s + 2.0,
+            length: 1.0,
+            pitch: melody[bar * 2],
+            velocity: 100,
+        });
+        notes.push(Note {
+            start: s + 3.0,
+            length: 1.0,
+            pitch: melody[bar * 2 + 1],
+            velocity: 100,
+        });
+    }
+    for (i, p) in [84u8, 79, 76, 72, 60, 48, 36, 24].iter().enumerate() {
+        notes.push(Note {
+            start: 16.0 + i as f64 * 0.5,
+            length: 0.45,
+            pitch: *p,
+            velocity: 120,
+        }); // FF layer, wide range
+    }
+    let project = Project {
+        tempo_bpm: 84.0,
+        master_gain: 0.9,
+        delay_beats: 0.5,
+        tracks: vec![Track {
+            name: "Piano".into(),
+            instrument: Instrument::Sampler {
+                zones: pack.zones.clone(),
+                release_s: pack.release_s,
+            },
+            gain: 0.8,
+            pan: 0.0,
+            mute: false,
+            delay_send: 0.0,
+            clips: vec![Clip {
+                start_beat: 0.0,
+                notes,
+            }],
+        }],
+    };
+    let samples = pack
+        .samples
+        .iter()
+        .enumerate()
+        .map(|(i, s)| (i as u32, s.clone()))
+        .collect::<Vec<_>>();
+    let mut e = Engine::new(sr);
+    for (id, s) in samples {
+        e.add_sample_i16(id, s.data, s.channels, s.sample_rate);
+    }
+    e.load_project(&project);
+    e.apply(Command::Play);
+    let total =
+        (project.beats_to_frames(project.length_beats(), sr as f64) as f32 + 3.0 * sr) as usize;
+    let (mut l, mut r) = (vec![0.0; total], vec![0.0; total]);
+    for i in (0..total).step_by(512) {
+        let end = (i + 512).min(total);
+        e.process(&mut l[i..end], &mut r[i..end]);
+    }
+    wav::write_wav16(out, sr as u32, &l, &r).unwrap();
+    println!("wrote {:.1} s -> {out}", total as f64 / sr as f64);
 }

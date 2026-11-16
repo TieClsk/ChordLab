@@ -79,6 +79,29 @@ jobs:
           path: apps/web/playwright-report
           retention-days: 7
 
+  pack:
+    name: Sample pack (Lite piano)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Builder unit tests
+        working-directory: scripts/packs
+        run: python3 -m unittest -v
+      - name: Build the pack from the pinned upstream commit
+        run: python3 scripts/packs/build_piano_lite.py --out apps/web/public/packs/piano-lite
+      - name: Load the real pack and enforce the memory budget (ADR-0005)
+        run: |
+          PIANO_PACK_DIR=apps/web/public/packs/piano-lite cargo test --release -p sample-packs --test load -- --ignored --nocapture | tee pack.log
+          {
+            echo "### Lite piano pack"
+            echo
+            echo "| download | $(du -sh apps/web/public/packs/piano-lite | cut -f1) |"
+            echo "| --- | --- |"
+            grep -o 'PACK_REPORT.*' pack.log | sed 's/PACK_REPORT /| loaded | /; s/$/ |/'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   licenses:
     name: Dependency licenses (cargo-deny)
     runs-on: ubuntu-latest

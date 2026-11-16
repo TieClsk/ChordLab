@@ -46,6 +46,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build the Lite piano pack (bundled with the app, ADR-0008)
+        run: python3 scripts/packs/build_piano_lite.py --out apps/web/public/packs/piano-lite
       - name: Build installer
         working-directory: apps/desktop
         run: npx --yes @tauri-apps/cli@2 build --bundles ${{ matrix.bundles }}

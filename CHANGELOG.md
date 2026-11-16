@@ -4,6 +4,10 @@
 
 ## [Unreleased] — Sprint 1
 
+### Added
+- 轻量版钢琴采样包（公有领域 Steinway）：构建脚本、`sample-packs` 加载器（解码、截断淡出、覆盖校验）、CI 内存预算检查，并随预览安装包分发（#9，ADR-0008）。
+- 命令行 `pack-render`：用采样包渲染试听文件。
+
 ## [0.0.0] — 2026-11-16 · Sprint 0
 
 标签 `v0.0.0` 指向 `c5766ef`：除 Sprint 0 的全部内容外，还包含 Sprint 1 的第一个故事 #8。
