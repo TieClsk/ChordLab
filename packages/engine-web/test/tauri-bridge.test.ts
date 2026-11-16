@@ -11,7 +11,7 @@ function fakeInvoke(responses: Record<string, unknown> = {}) {
   return { invoke, calls };
 }
 
-const project: Project = { tempo_bpm: 100, master_gain: 0.8, tracks: [] };
+const project: Project = { tempo_bpm: 100, master_gain: 0.8, delay_beats: 0.5, tracks: [] };
 
 describe('TauriBridge', () => {
   it('sends encoded commands to engine_cmd', async () => {

@@ -16,7 +16,12 @@ fn render_hit(tempo_bpm: f64, delay_beats: f64, beat: f64, sr: f32) -> Vec<f32> 
             delay_send: 1.0,
             clips: vec![Clip {
                 start_beat: 0.0,
-                notes: vec![Note { start: beat, length: 0.1, pitch: 42, velocity: 127 }],
+                notes: vec![Note {
+                    start: beat,
+                    length: 0.1,
+                    pitch: 42,
+                    velocity: 127,
+                }],
             }],
         }],
     };
@@ -26,8 +31,16 @@ fn render_hit(tempo_bpm: f64, delay_beats: f64, beat: f64, sr: f32) -> Vec<f32> 
 
 /// First non-silent sample after the dry hit has died out (= first echo).
 fn first_echo(l: &[f32], dry_start: usize) -> usize {
-    let dry_end = dry_start + l[dry_start..].iter().position(|x| *x == 0.0).expect("dry hit ends");
-    dry_end + l[dry_end..].iter().position(|x| *x != 0.0).expect("an echo")
+    let dry_end = dry_start
+        + l[dry_start..]
+            .iter()
+            .position(|x| *x == 0.0)
+            .expect("dry hit ends");
+    dry_end
+        + l[dry_end..]
+            .iter()
+            .position(|x| *x != 0.0)
+            .expect("an echo")
 }
 
 fn frames(beats: f64, bpm: f64, sr: f32) -> usize {
