@@ -69,6 +69,30 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0(jsdom@31.0.1)(vite@8.3.8)
 
+  packages/engine-web:
+    devDependencies:
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.15.0)
+      eslint:
+        specifier: ^10.15.0
+        version: 10.15.0
+      globals:
+        specifier: ^17.14.0
+        version: 17.14.0
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      typescript-eslint:
+        specifier: ^8.72.2
+        version: 8.72.2(eslint@10.15.0)(typescript@6.0.3)
+      vite:
+        specifier: ^8.3.8
+        version: 8.3.8
+      vitest:
+        specifier: ^5.1.0
+        version: 5.1.0(jsdom@31.0.1)(vite@8.3.8)
+
 packages:
 
   '@adobe/css-tools@4.5.0':

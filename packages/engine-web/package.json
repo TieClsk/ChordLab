@@ -1,0 +1,23 @@
+{
+  "name": "@chordlab/engine-web",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "EngineBridge: one interface to the ChordLab engine (Tauri native or AudioWorklet + WASM)",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "build:wasm": "cargo build --release -p engine-wasm --target wasm32-unknown-unknown && mkdir -p wasm && cp ../../target/wasm32-unknown-unknown/release/engine_wasm.wasm wasm/",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
