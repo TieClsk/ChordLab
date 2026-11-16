@@ -1,0 +1,24 @@
+{
+  "app": {
+    "tagline": "看得见、听得到、能拆解的和弦学习与创作工具",
+    "language": "语言",
+    "comingSoon": "即将推出"
+  },
+  "nav": {
+    "piano": "钢琴",
+    "lessons": "教程",
+    "analysis": "分析",
+    "arrange": "编曲"
+  },
+  "home": {
+    "title": "欢迎来到 ChordLab",
+    "body": "这是 Sprint 0 的应用骨架。从左侧选择一个模块；尚未完成的模块会标注“即将推出”。",
+    "sprint": "当前进度：{{sprint}}"
+  },
+  "section": {
+    "piano": "在键盘上弹奏，点击和弦即可听到并看到它的组成音。",
+    "lessons": "从音程到和弦功能，循序渐进地理解和弦。",
+    "analysis": "导入歌曲，识别和弦并找出其中的规律。",
+    "arrange": "编写旋律、鼓点，混音并导出。"
+  }
+}
