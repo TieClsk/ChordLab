@@ -1,0 +1,24 @@
+{
+  "app": {
+    "tagline": "See it, hear it, take it apart — learn and write with chords",
+    "language": "Language",
+    "comingSoon": "Coming soon"
+  },
+  "nav": {
+    "piano": "Piano",
+    "lessons": "Lessons",
+    "analysis": "Analysis",
+    "arrange": "Arrange"
+  },
+  "home": {
+    "title": "Welcome to ChordLab",
+    "body": "This is the Sprint 0 app shell. Pick a section on the left; sections that are not built yet are marked “Coming soon”.",
+    "sprint": "Current milestone: {{sprint}}"
+  },
+  "section": {
+    "piano": "Play on the keyboard and click a chord to hear and see its notes.",
+    "lessons": "Understand chords step by step, from intervals to harmonic function.",
+    "analysis": "Import songs, detect their chords and find the patterns.",
+    "arrange": "Write melodies and drums, mix and export."
+  }
+}
