@@ -1,5 +1,6 @@
 """Tests for the Lite piano pack builder (#9). Run: python -m unittest discover scripts/packs"""
 import json
+import subprocess
 import os
 import tempfile
 import unittest
@@ -86,3 +87,45 @@ class Build(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SourceCheckout(unittest.TestCase):
+    """A cached upstream checkout is reused only if it is complete and at the pinned commit
+    (a CI cache once restored a checkout with its files missing)."""
+
+    def _repo(self, d):
+        run = lambda *a: subprocess.run(['git', '-C', d, *a], check=True, capture_output=True)  # noqa: E731
+        os.makedirs(os.path.join(d, 'data'))
+        with open(os.path.join(d, 'data', 'MP.txt'), 'w') as f:
+            f.write('x')
+        run('init', '-q')
+        run('-c', 'user.email=t@t', '-c', 'user.name=t', 'add', '.')
+        run('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '-m', 'x')
+        return subprocess.run(['git', '-C', d, 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
+
+    def test_complete_checkout_at_the_pinned_commit_is_reused(self):
+        with tempfile.TemporaryDirectory() as d:
+            sha = self._repo(d)
+            self.assertTrue(b.source_is_usable(d, sha))
+
+    def test_checkout_with_missing_files_is_not_reused(self):
+        with tempfile.TemporaryDirectory() as d:
+            sha = self._repo(d)
+            os.remove(os.path.join(d, 'data', 'MP.txt'))
+            self.assertFalse(b.source_is_usable(d, sha))
+
+    def test_checkout_at_another_commit_is_not_reused(self):
+        with tempfile.TemporaryDirectory() as d:
+            self._repo(d)
+            self.assertFalse(b.source_is_usable(d, '0' * 40))
+
+    def test_missing_or_non_git_directory_is_not_reused(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertFalse(b.source_is_usable(os.path.join(d, 'nope'), 'x'))
+            os.makedirs(os.path.join(d, 'data'))
+            self.assertFalse(b.source_is_usable(d, 'x'))
+
+    def test_default_checkout_location_is_outside_target_and_public(self):
+        path = b.default_source_dir()
+        self.assertNotIn(os.sep + 'target' + os.sep, path)
+        self.assertNotIn(os.sep + 'public' + os.sep, path)
