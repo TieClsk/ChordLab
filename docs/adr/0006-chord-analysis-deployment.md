@@ -1,6 +1,6 @@
 # ADR-0006: 和弦识别的部署方式
 
-- 状态：已采纳
+- 状态：已采纳（2026-11-16 按 ADR-0007 修订快速分析方案）
 - 日期：2026-11-16
 - 相关：规划文档第 4 节（识别对比）、[Spike 001](../spikes/001-engine-architecture.md) 问题 10、13
 
@@ -12,7 +12,7 @@
 
 ## 决定
 
-1. **快速分析**（默认，桌面与 Web 都有）：essentia.js 在 Web Worker 中运行，几秒出结果。
+1. **快速分析**（默认，桌面与 Web 都有）：自研 Rust 实现（色度 + 模板 + Viterbi，Spike 000 中 96.1%），与引擎一样编译到原生和 WASM（Web 端在 Worker 中运行）。~~essentia.js~~ 因 AGPL 许可不进入主程序，见 ADR-0007。
 2. **精确分析**（桌面，可选组件）：`services/analyzer`（madmom）打包成 sidecar，用户首次使用时下载，以常驻进程运行（避免每首歌 7 秒冷启动），通过本地 HTTP/stdio 通信。
 3. 两种结果都存成同一 `ChordEvent` 结构，支持手动修正。
 4. **待验证**：把 BTC（MIT 许可，PyTorch）导出为 ONNX，用 Rust 推理（ort/tract）直接嵌入桌面应用，彻底去掉 Python。安排在 Sprint 4 的 Spike。
