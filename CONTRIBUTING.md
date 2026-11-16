@@ -23,6 +23,7 @@ This file defines how work flows through the ChordLab repo. It applies to every 
 
 - 合并方式：**Squash merge**，PR 标题即最终提交信息。
 - 合并后删除分支。
+- 合并前分支必须与 `main` 同步（规则集要求），CI 验证的必须是合并后的代码（S0 回顾）。更新分支用 merge main，不要 force push。
 - 每个 Sprint 结束在 `main` 打标签 `v0.<sprint>.0`，并写 `CHANGELOG.md`。
 
 ## 3. 提交信息 / Commit messages (Conventional Commits)

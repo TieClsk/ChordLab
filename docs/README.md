@@ -12,5 +12,5 @@
 
 ## 当前状态
 
-- Sprint：[Sprint 0 · 基础架构](sprints/sprint-00.md)
+- Sprint：[Sprint 1 · 互动钢琴 MVP](sprints/sprint-01.md)（上一个：[Sprint 0 · 基础架构](sprints/sprint-00.md)，已完成）
 - 最新验证：[Spike 001 · 引擎架构](spikes/001-engine-architecture.md)、[Spike 000 · 和弦识别选型](spikes/000-chord-recognition.md)
