@@ -1,5 +1,5 @@
 // INF-2 acceptance: switching language takes effect immediately and is remembered.
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import App from './App';
@@ -39,10 +39,42 @@ describe('App shell', () => {
     expect(screen.getByRole('navigation')).toHaveTextContent('Lessons');
   });
 
-  it('marks not-yet-built sections as coming soon', () => {
+  // #44: every unfinished module is marked the same way and cannot be opened
+  it.each(['Piano', 'Lessons', 'Analysis', 'Arrange'])('marks the unfinished %s module as coming soon', (name) => {
     renderApp('en');
-    const arrange = screen.getByRole('button', { name: /Arrange/ });
-    expect(arrange).toBeDisabled();
-    expect(arrange).toHaveTextContent(/coming soon/i);
+    const item = screen.getByRole('button', { name: new RegExp(name) });
+    expect(item).toBeDisabled();
+    expect(item).toHaveTextContent(/coming soon/i);
+  });
+
+  it('keeps finished modules clickable', () => {
+    renderApp('en');
+    expect(screen.getByRole('button', { name: 'Engine check' })).toBeEnabled();
+  });
+
+  it('home page shows a roadmap with each module, what it does and its planned sprint', () => {
+    renderApp('en');
+    const roadmap = screen.getByRole('table', { name: /roadmap/i });
+    const rows = within(roadmap).getAllByRole('row').slice(1);
+    expect(rows.map((r) => within(r).getAllByRole('cell')[0]!.textContent)).toEqual(['Piano', 'Lessons', 'Analysis', 'Arrange']);
+    expect(within(rows[0]!).getByText(/S1/)).toBeInTheDocument();
+    expect(within(rows[0]!).getByText(/click a chord/i)).toBeInTheDocument();
+  });
+
+  it('roadmap is translated too', () => {
+    renderApp('zh-CN');
+    const roadmap = screen.getByRole('table', { name: '路线图' });
+    expect(within(roadmap).getByText('钢琴')).toBeInTheDocument();
+  });
+
+  it('never shows an empty page: every clickable module renders real content', async () => {
+    renderApp('en');
+    for (const b of within(screen.getByRole('navigation')).getAllByRole('button')) {
+      if ((b as HTMLButtonElement).disabled) continue;
+      await userEvent.click(b);
+      const main = screen.getByRole('main');
+      // more than a heading and one sentence
+      expect(main.querySelectorAll('button, table, dl, pre, ul, ol').length, b.textContent ?? '').toBeGreaterThan(0);
+    }
   });
 });
