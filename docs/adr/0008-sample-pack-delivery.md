@@ -13,7 +13,7 @@
 1. **来源固定到上游某个提交**：Splendid Grand Piano（AKAI Steinway，公有领域），`smpldsnds/sfzinstruments-splendid-grand-piano@009793e`。使用其中的 AAC（.m4a）文件，Rust 的 symphonia 可以解码；同一仓库里的 .ogg 是 Opus 编码，symphonia 不支持。
 2. **构建时只挑选、不转码**：`scripts/packs/build_piano_lite.py` 每 3 个半音保留 1 个采样，共 2 个力度层（MP 1–108、FF 109–127，界面默认力度 100 落在较柔和的 MP 层），原样复制文件并生成 `manifest.json`（区域、力度层、来源与许可）。不需要音频编码器，CI 的三个平台都能直接运行。
 3. **加载时处理**：`crates/sample-packs` 解码、截断到 6 秒并线性淡出 0.5 秒，按 i16 立体声存储（#8）。只用纯 Rust，原生和 wasm32 都能编译。
-4. **采样包不进 git**：二进制文件由 CI 和本地构建生成到 `apps/web/public/packs/piano-lite/`（已 gitignore）。上游源码克隆到 `target/pack-src/`，不会被打包。
+4. **采样包不进 git**：二进制文件由 CI 和本地构建生成到 `apps/web/public/packs/piano-lite/`（已 gitignore）。上游源码克隆到 `.cache/pack-src/`（已 gitignore），既不会被打包，也不会被 CI 的 Rust 缓存（它会恢复 `target/`）带回不完整的副本；复用前会校验提交号与文件完整性，否则重新克隆。
 5. **随应用分发**：采样包放在前端静态资源里。
    - 桌面版：Tauri 把前端资源嵌入可执行文件，原生端通过 asset resolver 读取字节，再交给 `sample_packs::load_with`。（在 #11 中接入）
    - 网页版：同一组文件作为静态资源下载，用同一个加载器（编译为 WASM）解码。（S6 网页版发布时接入）
