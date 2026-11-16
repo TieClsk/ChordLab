@@ -1,0 +1,53 @@
+name: 用户故事 / User story
+description: 一个可交付的功能增量 / A deliverable feature increment
+title: "[Story] "
+labels: ["type:story", "backlog"]
+body:
+  - type: dropdown
+    id: epic
+    attributes:
+      label: 史诗 / Epic
+      options:
+        - E0 乐理核心 / Theory core
+        - E1 互动钢琴 / Interactive piano
+        - E2 和弦教程 / Chord lessons
+        - E3 音乐分析 / Music analysis
+        - E4 音色 / Sounds
+        - E5 编曲 / Arrangement
+        - Infra 基础设施
+    validations:
+      required: true
+  - type: textarea
+    id: story
+    attributes:
+      label: 用户故事 / Story
+      description: 作为 <角色>，我希望 <能力>，以便 <价值>。
+      placeholder: 作为学习者，我希望点击和弦后看到推荐的下一个和弦，以便学习常见进行。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准 / Acceptance criteria
+      description: 可检验的条目，每行一条
+      placeholder: |
+        - [ ] 至少显示 3 个推荐
+        - [ ] 每个推荐带级数和概率
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级 / Priority (MoSCoW)
+      options: [Must, Should, Could]
+    validations:
+      required: true
+  - type: dropdown
+    id: points
+    attributes:
+      label: 估算 / Story points
+      options: ["1", "2", "3", "5", "8 (需拆分 / must split)"]
+  - type: textarea
+    id: notes
+    attributes:
+      label: 技术备注 / Technical notes

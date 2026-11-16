@@ -1,0 +1,32 @@
+name: 技术验证 / Spike
+description: 有时间盒的技术调研或实验 / Time-boxed technical investigation
+title: "[Spike] "
+labels: ["type:spike", "backlog"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 要回答的问题 / Questions to answer
+      placeholder: |
+        1. 同一个 Rust DSP crate 能否同时编译到原生与 WASM？
+        2. WASM 版本在 AudioWorklet 里的 CPU 余量有多少？
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: 时间盒 / Time box
+      placeholder: 1 天 / 1 day
+    validations:
+      required: true
+  - type: textarea
+    id: method
+    attributes:
+      label: 方法 / Method
+  - type: textarea
+    id: done
+    attributes:
+      label: 完成条件 / Exit criteria
+      value: |
+        - [ ] 结论写入 docs/spikes/
+        - [ ] 影响架构的结论已落成 ADR

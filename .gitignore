@@ -1,0 +1,30 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Tauri generated
+apps/desktop/src-tauri/gen/
+
+# Node
+node_modules/
+dist/
+!apps/desktop/dist/
+.pnpm-store/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+services/analyzer/build/
+services/analyzer/dist/
+
+# Audio artifacts from local runs
+*.wav
+*.f32
+experiments/**/out/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

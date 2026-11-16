@@ -1,0 +1,31 @@
+name: 缺陷 / Bug
+description: 功能不符合预期 / Something does not work as expected
+title: "[Bug] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 现象 / What happened
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果 / Expected
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 环境 / Environment
+      placeholder: macOS 15 / Windows 11, 桌面版 v0.2.0 或浏览器 Chrome 142
