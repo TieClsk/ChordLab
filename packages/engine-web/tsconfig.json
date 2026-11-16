@@ -12,6 +12,5 @@
     "noEmit": true,
     "types": ["vite/client", "vitest/globals"]
   },
-  "include": ["src", "test"],
-  "exclude": ["src/worklet.ts"]
+  "include": ["src", "test"]
 }

@@ -1,48 +1,56 @@
 // Wait-free single-producer / single-consumer ring of 16-byte commands over a
 // SharedArrayBuffer. Producer: UI thread. Consumer: AudioWorkletProcessor.
 // Layout: Int32[0] = write index, Int32[1] = read index, then capacity * 4 Uint32 slots.
-// Mirrors `engine_core::Command::encode` ([u32; 4]).
 
-export const HEADER_BYTES = 8;
-export const SLOT_WORDS = 4;
+const HEADER_BYTES = 8;
+const SLOT_WORDS = 4;
 
-export function createRingBuffer(capacity = 1024) {
+export function createRingBuffer(capacity = 1024): SharedArrayBuffer {
   return new SharedArrayBuffer(HEADER_BYTES + capacity * SLOT_WORDS * 4);
 }
 
 export class RingWriter {
-  constructor(sab) {
+  private readonly idx: Int32Array;
+  private readonly data: Uint32Array;
+  private readonly cap: number;
+
+  constructor(sab: SharedArrayBuffer) {
     this.idx = new Int32Array(sab, 0, 2);
     this.data = new Uint32Array(sab, HEADER_BYTES);
     this.cap = this.data.length / SLOT_WORDS;
   }
-  /** @returns {boolean} false if the ring is full */
-  push(a, b = 0, c = 0, d = 0) {
+
+  /** Returns false if the ring is full (the command is dropped). */
+  push(words: ArrayLike<number>): boolean {
     const w = Atomics.load(this.idx, 0);
-    const r = Atomics.load(this.idx, 1);
     const next = (w + 1) % this.cap;
-    if (next === r) return false;
+    if (next === Atomics.load(this.idx, 1)) return false;
     const o = w * SLOT_WORDS;
-    this.data[o] = a; this.data[o + 1] = b; this.data[o + 2] = c; this.data[o + 3] = d;
-    Atomics.store(this.idx, 0, next); // publish after the payload is written
+    for (let i = 0; i < SLOT_WORDS; i++) this.data[o + i] = words[i] ?? 0;
+    Atomics.store(this.idx, 0, next); // publish only after the payload is written
     return true;
   }
 }
 
 export class RingReader {
-  constructor(sab) {
+  private readonly idx: Int32Array;
+  private readonly data: Uint32Array;
+  private readonly cap: number;
+
+  constructor(sab: SharedArrayBuffer) {
     this.idx = new Int32Array(sab, 0, 2);
     this.data = new Uint32Array(sab, HEADER_BYTES);
     this.cap = this.data.length / SLOT_WORDS;
   }
-  /** Calls fn(a,b,c,d) for every pending command. Returns the count. */
-  drain(fn) {
+
+  /** Calls `fn` for every pending command; returns how many were read. Allocation-free. */
+  drain(fn: (a: number, b: number, c: number, d: number) => void): number {
     let r = Atomics.load(this.idx, 1);
     const w = Atomics.load(this.idx, 0);
     let n = 0;
     while (r !== w) {
       const o = r * SLOT_WORDS;
-      fn(this.data[o], this.data[o + 1], this.data[o + 2], this.data[o + 3]);
+      fn(this.data[o]!, this.data[o + 1]!, this.data[o + 2]!, this.data[o + 3]!);
       r = (r + 1) % this.cap;
       n++;
     }
@@ -50,8 +58,3 @@ export class RingReader {
     return n;
   }
 }
-
-// Float helper so callers can send f32 parameters (gain, pan) as u32 bits.
-const f32 = new Float32Array(1);
-const u32 = new Uint32Array(f32.buffer);
-export function f32bits(x) { f32[0] = x; return u32[0]; }
