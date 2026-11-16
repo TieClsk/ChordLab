@@ -2,7 +2,7 @@
 // the engine runs on the cpal audio thread (see engine-native::realtime).
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use engine_core::{demo_project, test_tone_sample, Command, Engine};
+use engine_core::{Engine, Project};
 use engine_native::realtime::Host;
 use std::sync::atomic::Ordering;
 use std::sync::Mutex;
@@ -40,24 +40,31 @@ fn engine_status(state: tauri::State<AppState>) -> serde_json::Value {
     }
 }
 
-/// Builds a loaded engine off the audio thread, then swaps it in.
+/// Replaces the whole project (ADR-0004). The new engine is built here, off the
+/// audio thread, then swapped in; transport is stopped after a load.
 #[tauri::command]
-fn load_demo(state: tauri::State<AppState>, bars: u32) -> bool {
+fn load_project(state: tauri::State<AppState>, json: String) -> bool {
+    let Ok(project) = serde_json::from_str::<Project>(&json) else {
+        return false;
+    };
     let mut g = state.host.lock().unwrap();
     let Some(h) = g.as_mut() else { return false };
-    let sr = h.sample_rate as f32;
-    let mut e = Engine::new(sr);
-    e.add_sample(0, test_tone_sample(sr), sr);
-    e.load_project(&demo_project(true, bars));
-    e.apply(Command::Play);
+    let mut e = Engine::new(h.sample_rate as f32);
+    e.load_project(&project);
     h.replace_engine(e)
 }
 
-/// Spike helper: print the UI-side measurements and quit (used by the CI smoke run).
+/// The UI asks this on startup; CI sets CHORDLAB_SELFTEST to run the desktop smoke test.
+#[tauri::command]
+fn selftest_requested() -> bool {
+    std::env::var("CHORDLAB_SELFTEST").is_ok()
+}
+
+/// Receives the self-test result from the UI, prints it for CI and quits in self-test mode.
 #[tauri::command]
 fn report(app: tauri::AppHandle, json: String) {
-    println!("SPIKE_REPORT {json}");
-    if std::env::var("CHORDLAB_SPIKE_EXIT").is_ok() {
+    println!("SELFTEST_REPORT {json}");
+    if selftest_requested() {
         app.exit(0);
     }
 }
@@ -77,7 +84,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             engine_cmd,
             engine_status,
-            load_demo,
+            load_project,
+            selftest_requested,
             report
         ])
         .run(tauri::generate_context!())
