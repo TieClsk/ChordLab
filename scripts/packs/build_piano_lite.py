@@ -100,7 +100,9 @@ def main():
     ap.add_argument('--src', help='upstream checkout; cloned at the pinned commit if missing')
     ap.add_argument('--out', required=True)
     a = ap.parse_args()
-    src = a.src or os.path.join(os.path.dirname(a.out), '.piano-src')
+    # keep the upstream checkout out of public/ so it is never bundled with the app
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    src = a.src or os.path.join(repo_root, 'target', 'pack-src', 'splendid-grand-piano')
     if not os.path.isdir(os.path.join(src, 'data')):
         subprocess.run(['git', 'clone', '--quiet', '--filter=blob:none', SOURCE_REPO, src], check=True)
         subprocess.run(['git', '-C', src, 'checkout', '--quiet', SOURCE_COMMIT], check=True)

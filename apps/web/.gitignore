@@ -1,3 +1,4 @@
 public/engine_wasm.wasm
 test-results/
 playwright-report/
+public/packs/

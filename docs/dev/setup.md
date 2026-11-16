@@ -48,6 +48,11 @@ pnpm --filter @chordlab/web build
 cargo build -p chordlab-desktop --features tauri/custom-protocol   # 不加此特性时 debug 构建会去连开发服务器
 CHORDLAB_SELFTEST=1 ./target/debug/chordlab-desktop               # 输出 SELFTEST_REPORT {...} 后自动退出
 
+# 轻量版钢琴采样包（#9，ADR-0008）：构建、检查内存、渲染试听
+python3 scripts/packs/build_piano_lite.py --out apps/web/public/packs/piano-lite
+PIANO_PACK_DIR=apps/web/public/packs/piano-lite cargo test --release -p sample-packs --test load -- --ignored --nocapture
+cargo run --release -p engine-native --bin chordlab-engine -- pack-render apps/web/public/packs/piano-lite piano.wav
+
 # 契约测试：Rust 命令编码变更后重新生成样例
 UPDATE_FIXTURES=1 cargo test -p engine-core --test contract
 

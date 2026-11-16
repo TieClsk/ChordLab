@@ -18,6 +18,7 @@ realtime = ["dep:cpal"]
 [dependencies]
 engine-core = { path = "../engine-core" }
 audio-io = { path = "../audio-io" }
+sample-packs = { path = "../sample-packs" }
 serde_json = { workspace = true }
 rtrb = "0.3"
 cpal = { version = "0.15", optional = true }

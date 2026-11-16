@@ -903,6 +903,7 @@ dependencies = [
  "cpal",
  "engine-core",
  "rtrb",
+ "sample-packs",
  "serde_json",
 ]
 

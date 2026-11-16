@@ -21,8 +21,8 @@ fn write_wav(path: &Path, channels: u16, frames: &[[i16; 2]]) {
     b.extend_from_slice(b"data");
     b.extend_from_slice(&data_len.to_le_bytes());
     for f in frames {
-        for c in 0..channels as usize {
-            b.extend_from_slice(&f[c].to_le_bytes());
+        for v in f.iter().take(channels as usize) {
+            b.extend_from_slice(&v.to_le_bytes());
         }
     }
     std::fs::write(path, b).unwrap();
@@ -48,7 +48,11 @@ fn fixture(dir: &Path) {
             {"sample_id": 1, "root_note": 72, "lo_note": 65, "hi_note": 108, "lo_vel": 1, "hi_vel": 127, "gain": 1.0}
         ]
     });
-    std::fs::write(dir.join("manifest.json"), serde_json::to_string_pretty(&manifest).unwrap()).unwrap();
+    std::fs::write(
+        dir.join("manifest.json"),
+        serde_json::to_string_pretty(&manifest).unwrap(),
+    )
+    .unwrap();
 }
 
 fn tmp(name: &str) -> std::path::PathBuf {
@@ -67,11 +71,21 @@ fn long_samples_are_trimmed_to_max_seconds_with_a_fade_out() {
     assert_eq!(low.data.len() / 2, 6 * SR as usize, "trimmed to 6 s");
     let frame = |i: usize| (low.data[2 * i], low.data[2 * i + 1]);
     assert_eq!(frame(0), (10_000, -10_000), "start untouched");
-    assert_eq!(frame(5 * SR as usize), (10_000, -10_000), "before the fade untouched");
+    assert_eq!(
+        frame(5 * SR as usize),
+        (10_000, -10_000),
+        "before the fade untouched"
+    );
     let (l, r) = frame(6 * SR as usize - 1);
-    assert!(l.abs() < 50 && r.abs() < 50, "faded to silence at the end: {l} {r}");
+    assert!(
+        l.abs() < 50 && r.abs() < 50,
+        "faded to silence at the end: {l} {r}"
+    );
     let mid = frame((5.75 * SR as f64) as usize).0;
-    assert!((4_000..6_000).contains(&mid), "half-way through the fade: {mid}");
+    assert!(
+        (4_000..6_000).contains(&mid),
+        "half-way through the fade: {mid}"
+    );
 }
 
 #[test]
@@ -112,16 +126,23 @@ fn sample_ids_can_be_offset_when_several_packs_are_loaded() {
 fn validate_rejects_gaps_overlaps_and_bad_references() {
     let d = tmp("validate");
     fixture(&d);
-    let ok: Manifest = serde_json::from_slice(&std::fs::read(d.join("manifest.json")).unwrap()).unwrap();
+    let ok: Manifest =
+        serde_json::from_slice(&std::fs::read(d.join("manifest.json")).unwrap()).unwrap();
     assert!(validate(&ok).is_ok());
 
     let mut gap = ok.clone();
     gap.zones[1].lo_note = 66; // key 65 uncovered
-    assert!(matches!(validate(&gap), Err(PackError::Coverage { key: 65, .. })));
+    assert!(matches!(
+        validate(&gap),
+        Err(PackError::Coverage { key: 65, .. })
+    ));
 
     let mut overlap = ok.clone();
     overlap.zones[1].lo_note = 64; // key 64 covered twice
-    assert!(matches!(validate(&overlap), Err(PackError::Coverage { key: 64, .. })));
+    assert!(matches!(
+        validate(&overlap),
+        Err(PackError::Coverage { key: 64, .. })
+    ));
 
     let mut bad_ref = ok.clone();
     bad_ref.zones[0].sample_id = 9;
@@ -149,7 +170,13 @@ fn real_lite_piano_pack_fits_the_memory_budget() {
     let p = load_pack(Path::new(&dir)).unwrap();
     let ms = t.elapsed().as_secs_f64() * 1e3;
     let mb = p.memory_bytes() as f64 / 1e6;
-    println!("PACK_REPORT samples={} memory_mb={mb:.1} load_ms={ms:.0}", p.samples.len());
+    println!(
+        "PACK_REPORT samples={} memory_mb={mb:.1} load_ms={ms:.0}",
+        p.samples.len()
+    );
     assert!(mb <= 60.0, "ADR-0005 budget: {mb:.1} MB > 60 MB");
-    assert!(p.samples.iter().all(|s| s.channels == 2), "piano samples keep their stereo image");
+    assert!(
+        p.samples.iter().all(|s| s.channels == 2),
+        "piano samples keep their stereo image"
+    );
 }
