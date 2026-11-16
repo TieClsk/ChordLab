@@ -13,6 +13,9 @@ pub struct Project {
     pub tempo_bpm: f64,
     #[serde(default = "default_gain")]
     pub master_gain: f32,
+    /// Delay-send time in beats (tempo-synced). 0.5 = eighth note.
+    #[serde(default = "default_delay_beats")]
+    pub delay_beats: f64,
     pub tracks: Vec<Track>,
 }
 
@@ -157,6 +160,9 @@ pub struct Note {
 
 fn default_gain() -> f32 {
     0.8
+}
+fn default_delay_beats() -> f64 {
+    0.5
 }
 fn default_vel() -> u8 {
     100

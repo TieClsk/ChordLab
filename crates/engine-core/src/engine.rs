@@ -6,6 +6,8 @@ use crate::dsp::*;
 use crate::model::{Instrument, Project, Wave};
 
 pub const MAX_VOICES: usize = 64;
+/// Longest delay-send time; longer tempo-synced values are clamped.
+pub const MAX_DELAY_S: f32 = 4.0;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Event {
@@ -201,7 +203,7 @@ impl Engine {
             voices: [Voice::default(); MAX_VOICES],
             voice_clock: 0,
             samples: Vec::new(),
-            delay: Delay::new((sample_rate * 0.375) as usize),
+            delay: Delay::new((sample_rate * MAX_DELAY_S) as usize),
             master: 0.8,
             frames_rendered: 0,
         }
@@ -232,6 +234,8 @@ impl Engine {
     pub fn load_project(&mut self, p: &Project) {
         let sr = self.sr as f64;
         self.master = p.master_gain;
+        self.delay
+            .set_len(p.beats_to_frames(p.delay_beats, sr) as usize);
         self.tracks = p
             .tracks
             .iter()
