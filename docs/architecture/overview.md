@@ -48,7 +48,7 @@ flowchart TB
 | `sample-packs` | 采样包：读取 manifest、解码、截断淡出、校验覆盖、i16 立体声 | 不碰音频线程 |
 | `analysis`（S4 新增） | 快速和弦/调/BPM 识别（色度 + 模板 + Viterbi） | 不依赖 AGPL 代码 |
 | `packages/engine-web` | AudioWorklet 处理器、SAB 环形缓冲、生成的 TS 类型、Web 版 `EngineBridge` | — |
-| `packages/theory` | 和弦/音阶/级数、和弦排序、进行推荐 | 不发声 |
+| `packages/theory` | 和弦/音阶/级数、和弦排序、发声音高（已实现 #10）；进行推荐（#14） | 不发声 |
 | `apps/web` | 所有界面、国际化、工程文档状态 | 不直接调用 Web Audio |
 | `apps/desktop` | Tauri 壳、原生引擎、文件系统、sidecar 管理 | 不含界面代码 |
 | `services/analyzer` | 精确和弦/调/BPM 识别 | — |
