@@ -37,11 +37,25 @@ pnpm install
 pnpm --filter @chordlab/web dev      # 开发服务器（已带 COOP/COEP 头）
 pnpm test && pnpm lint && pnpm typecheck
 
+# 浏览器端到端测试（真实 Chromium 中的 AudioWorklet 引擎）
+pnpm --filter @chordlab/web build:wasm      # 编译 WASM 引擎并放进 apps/web/public
+pnpm --filter @chordlab/web build
+pnpm --filter @chordlab/web exec playwright install chromium   # 首次
+pnpm --filter @chordlab/web test:e2e
+
+# 桌面端到端自检（React 界面 -> TauriBridge -> 原生引擎）
+pnpm --filter @chordlab/web build
+cargo build -p chordlab-desktop --features tauri/custom-protocol   # 不加此特性时 debug 构建会去连开发服务器
+CHORDLAB_SELFTEST=1 ./target/debug/chordlab-desktop               # 输出 SELFTEST_REPORT {...} 后自动退出
+
+# 契约测试：Rust 命令编码变更后重新生成样例
+UPDATE_FIXTURES=1 cargo test -p engine-core --test contract
+
 # 重新生成前端 TS 类型（模型改动后）
 cargo test -p engine-core --features ts --lib
 
-# 桌面应用（开发）
-cargo run -p chordlab-desktop
+# 桌面应用（开发，热更新界面）
+cd apps/desktop && npx @tauri-apps/cli@2 dev
 ```
 
 ## 目录

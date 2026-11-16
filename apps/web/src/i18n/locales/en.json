@@ -8,7 +8,8 @@
     "piano": "Piano",
     "lessons": "Lessons",
     "analysis": "Analysis",
-    "arrange": "Arrange"
+    "arrange": "Arrange",
+    "diagnostics": "Engine check"
   },
   "home": {
     "title": "Welcome to ChordLab",
@@ -20,5 +21,25 @@
     "lessons": "Understand chords step by step, from intervals to harmonic function.",
     "analysis": "Import songs, detect their chords and find the patterns.",
     "arrange": "Write melodies and drums, mix and export."
+  },
+  "diagnostics": {
+    "title": "Engine check",
+    "starting": "Starting the audio engine…",
+    "error": "The audio engine could not start: {{error}}",
+    "runtimeNative": "Running: native engine (desktop)",
+    "runtimeWorklet": "Running: browser engine (AudioWorklet + WebAssembly)",
+    "listen": "Listen",
+    "playDemo": "▶ Play demo",
+    "stop": "■ Stop",
+    "holdChord": "Hold a chord button, or press keys 1–4:",
+    "status": "Engine status",
+    "device": "Output device",
+    "sampleRate": "Sample rate",
+    "buffer": "Buffer",
+    "voices": "Active voices",
+    "selfTest": "Self-test",
+    "selfTestRun": "Run self-test (about 6 s)",
+    "selfTestRunning": "Testing…",
+    "copy": "Copy results"
   }
 }

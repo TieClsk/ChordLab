@@ -1,0 +1,3 @@
+public/engine_wasm.wasm
+test-results/
+playwright-report/

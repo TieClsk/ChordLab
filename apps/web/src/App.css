@@ -91,3 +91,13 @@ body { margin: 0; }
   .shell { grid-template-columns: 1fr; }
   .sidenav { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
 }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 16px 0; }
+.card h3 { margin: 0 0 12px; font-size: 15px; }
+.card button { font: inherit; padding: 8px 14px; margin: 0 8px 8px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); cursor: pointer; }
+.card button:active { background: var(--accent-soft); }
+.chords button.chord { min-width: 64px; font-weight: 600; touch-action: none; user-select: none; }
+.status { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.status dt { color: var(--muted); }
+.status dd { margin: 0; font-variant-numeric: tabular-nums; }
+.card pre { background: var(--bg); padding: 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; }

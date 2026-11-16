@@ -8,7 +8,8 @@
     "piano": "钢琴",
     "lessons": "教程",
     "analysis": "分析",
-    "arrange": "编曲"
+    "arrange": "编曲",
+    "diagnostics": "引擎诊断"
   },
   "home": {
     "title": "欢迎来到 ChordLab",
@@ -20,5 +21,25 @@
     "lessons": "从音程到和弦功能，循序渐进地理解和弦。",
     "analysis": "导入歌曲，识别和弦并找出其中的规律。",
     "arrange": "编写旋律、鼓点，混音并导出。"
+  },
+  "diagnostics": {
+    "title": "引擎诊断",
+    "starting": "正在启动音频引擎…",
+    "error": "音频引擎无法启动：{{error}}",
+    "runtimeNative": "运行中：原生引擎（桌面版）",
+    "runtimeWorklet": "运行中：浏览器引擎（AudioWorklet + WebAssembly）",
+    "listen": "试听",
+    "playDemo": "▶ 播放演示",
+    "stop": "■ 停止",
+    "holdChord": "按住和弦按钮发声，或按键盘 1–4：",
+    "status": "引擎状态",
+    "device": "输出设备",
+    "sampleRate": "采样率",
+    "buffer": "缓冲",
+    "voices": "活动声部",
+    "selfTest": "自检",
+    "selfTestRun": "运行自检（约 6 秒）",
+    "selfTestRunning": "自检中…",
+    "copy": "复制结果"
   }
 }
