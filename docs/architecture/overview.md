@@ -52,6 +52,18 @@ flowchart TB
 | `apps/desktop` | Tauri 壳、原生引擎、文件系统、sidecar 管理 | 不含界面代码 |
 | `services/analyzer` | 精确和弦/调/BPM 识别 | — |
 
+## EngineBridge（已实现，#5）
+
+| 组成 | 位置 | 说明 |
+| --- | --- | --- |
+| 接口 `EngineBridge` | `packages/engine-web/src/bridge.ts` | `send` / `loadProject` / `status` / `resume` / `dispose` |
+| 命令编码 | `packages/engine-web/src/commands.ts` | 与 Rust `Command::encode` 由契约测试锁定 |
+| `TauriBridge` | `packages/engine-web/src/tauri-bridge.ts` | `invoke('engine_cmd' / 'load_project' / 'engine_status')`，命令按发送顺序串行 |
+| `WorkletBridge` | `packages/engine-web/src/worklet-bridge.ts` + `worklet.ts` | 跨源隔离时走 SAB 环形缓冲，否则退回 postMessage |
+| 运行时选择 | `createEngineBridge()` | Tauri 内 → 原生；有 AudioWorklet → WASM；否则报错 |
+
+界面代码只依赖接口；同一个“引擎诊断”页在桌面与浏览器中都由 CI 端到端测试覆盖。
+
 ## 关键约束（来自 Spike 001）
 
 1. `Engine::process()` 零分配、无锁、无 I/O（有测试守护）。

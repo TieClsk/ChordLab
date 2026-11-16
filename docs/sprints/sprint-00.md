@@ -11,8 +11,8 @@
 | SPK-1 | 引擎架构验证（Rust 双目标、AudioWorklet、Tauri、采样、导出） | ✅ 完成，见 [Spike 001](../spikes/001-engine-architecture.md) |
 | INF-3 | CI 流水线 | ✅ #4，首次运行全绿 |
 | — | 开发文档、ADR 0001–0006、贡献规范、Issue/PR 模板 | ✅ |
-| INF-1 | `EngineBridge` 接口与两种实现 | ⏳ |
-| INF-2 | Web 前端骨架 + i18n | ⏳ |
+| INF-1 | `EngineBridge` 接口与两种实现 | ✅ #5：契约测试 + 单元测试 + 浏览器 e2e + 桌面 e2e |
+| INF-2 | Web 前端骨架 + i18n | ✅ #6（PR #38） |
 | UX-S0 | 用户体验测试：真机音频与听感（含 SPK-3），PO 执行，使用 CI 预览安装包 | ✅ #7 通过（Windows：10 ms 缓冲，回调峰值 1.6%，命令→发声 6.5 ms）；反馈 #36 |
 | — | 开源许可（ADR-0007）、TDD + UX 测试流程、预览构建流水线 | ✅ |
 
@@ -22,6 +22,7 @@
 - 11-16 完成 Spike 001：14 个问题全部有结论；发现并处理 7 个坑；产出 ADR 0001–0006。
 - 11-16 仓库公开（TieClsk/ChordLab）；首次 CI 全绿；采用 MIT OR Apache-2.0（PR #1）；引入 TDD + 每 Sprint 两次 UX 测试，桌面预览安装包自动构建。
 - 11-16 PO 完成 S0 UX 测试（#7）：Windows 真机音频全部达标；听感反馈“生硬”记为 #36（S1/S2 处理）。PO 完成仓库设置。
+- 11-16 按 TDD 完成 #6（中英双语骨架）与 #5（EngineBridge）：每个故事先提交失败测试再实现；CI 增加浏览器与桌面两条端到端测试。
 
 ## 评审（Sprint 末填写）
 
