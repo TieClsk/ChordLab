@@ -2,19 +2,55 @@
 <html lang="zh">
 <meta charset="utf-8">
 <title>ChordLab</title>
-<body style="font-family: system-ui; padding: 24px">
-<h1>ChordLab desktop spike</h1>
-<pre id="out">running…</pre>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 32px; background: #f6f7f9; color: #1b1f24; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p.sub { margin: 0 0 24px; color: #5b6470; }
+  section { background: #fff; border: 1px solid #e3e6ea; border-radius: 10px; padding: 20px; margin-bottom: 16px; max-width: 760px; }
+  h2 { font-size: 15px; margin: 0 0 12px; }
+  button { font: inherit; padding: 10px 16px; margin: 0 8px 8px 0; border-radius: 8px; border: 1px solid #c9ced6; background: #fff; cursor: pointer; }
+  button:active { background: #e8eefc; }
+  button.chord { min-width: 72px; font-weight: 600; }
+  pre { background: #f1f3f5; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 12px; }
+  .muted { color: #5b6470; font-size: 13px; }
+</style>
+<body>
+<h1>ChordLab · 引擎原型 / Engine prototype</h1>
+<p class="sub">Sprint 0 硬件测试版：测量本机音频性能，并试听引擎声音。 / Sprint 0 hardware test build.</p>
+
+<section>
+  <h2>1. 自动测量 / Automatic measurements</h2>
+  <p class="muted">打开后自动运行约 15 秒，期间会听到一段演示音乐和一些单音。完成后点“复制结果”，粘贴到 GitHub Issue。<br>Runs ~15 s on start (you will hear a demo and single notes). Then copy the results into the GitHub issue.</p>
+  <pre id="out">正在测量… / measuring…</pre>
+  <button id="copy" disabled>复制结果 / Copy results</button>
+</section>
+
+<section>
+  <h2>2. 试听 / Listen</h2>
+  <button id="play">▶ 播放演示 / Play demo</button>
+  <button id="stop">■ 停止 / Stop</button>
+  <div style="margin-top:8px">
+    <span class="muted">按住和弦按钮发声（或按键盘 1–4）/ Hold a chord (or keys 1–4):</span><br><br>
+    <button class="chord" data-notes="60,64,67">C</button>
+    <button class="chord" data-notes="55,59,62">G</button>
+    <button class="chord" data-notes="57,60,64">Am</button>
+    <button class="chord" data-notes="53,57,60">F</button>
+  </div>
+</section>
+
 <script>
-// Measures (1) Tauri IPC round-trip for engine commands, (2) audio callback health,
-// (3) command -> sounding voice latency through the native engine.
+// (1) Tauri IPC round-trip, (2) audio callback health, (3) command -> sounding voice latency,
+// then a tiny manual playground for listening tests.
 const { invoke } = window.__TAURI__.core;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const pct = (a, p) => a.slice().sort((x, y) => x - y)[Math.floor(a.length * p)];
+const cmd = (w) => invoke('engine_cmd', { w });
+let resultText = '';
+
 (async () => {
-  const r = { webview: navigator.userAgent };
+  const r = { webview: navigator.userAgent, platform: navigator.platform };
   const ipc = [];
-  for (let i = 0; i < 500; i++) { const t = performance.now(); await invoke('engine_cmd', { w: [6, 0, 0, 0] }); ipc.push(performance.now() - t); }
+  for (let i = 0; i < 500; i++) { const t = performance.now(); await cmd([6, 0, 0, 0]); ipc.push(performance.now() - t); }
   r.ipcMedianMs = +pct(ipc, 0.5).toFixed(3); r.ipcP95Ms = +pct(ipc, 0.95).toFixed(3);
   r.loaded = await invoke('load_demo', { bars: 8 });
   const s0 = await invoke('engine_status'); await sleep(2000); const s1 = await invoke('engine_status');
@@ -22,22 +58,40 @@ const pct = (a, p) => a.slice().sort((x, y) => x - y)[Math.floor(a.length * p)];
     r.device = s1.device; r.sampleRate = s1.sampleRate; r.framesPerCallback = s1.framesPerCallback;
     r.callbacksPerSec = Math.round((s1.callbacks - s0.callbacks) / 2);
     r.audioSecondsAdvancedIn2s = +((s1.position - s0.position) / s1.sampleRate).toFixed(2);
+    r.bufferMs = +((s1.framesPerCallback / s1.sampleRate) * 1000).toFixed(2);
     r.maxCallbackUs = s1.maxCallbackUs; r.voicesWhilePlaying = s1.voices;
-    // note-on latency: stop transport, then time NoteOn -> voice count increases
-    await invoke('engine_cmd', { w: [2, 0, 0, 0] }); await sleep(800);
+    await cmd([2, 0, 0, 0]); await sleep(800);
     const lat = [];
     for (let i = 0; i < 30; i++) {
       const before = (await invoke('engine_status')).voices; const t = performance.now();
-      await invoke('engine_cmd', { w: [4, 0, 60 + (i % 12), 100] });
+      await cmd([4, 0, 60 + (i % 12), 100]);
       while ((await invoke('engine_status')).voices <= before && performance.now() - t < 300) {}
       lat.push(performance.now() - t);
-      await invoke('engine_cmd', { w: [5, 0, 60 + (i % 12), 0] }); await sleep(250);
+      await cmd([5, 0, 60 + (i % 12), 0]); await sleep(250);
     }
     r.noteToVoiceMedianMs = +pct(lat, 0.5).toFixed(2); r.noteToVoiceP95Ms = +pct(lat, 0.95).toFixed(2);
   } else r.audio = s1.error;
-  document.getElementById('out').textContent = JSON.stringify(r, null, 2);
+  resultText = JSON.stringify(r, null, 2);
+  document.getElementById('out').textContent = resultText;
+  document.getElementById('copy').disabled = false;
   await invoke('report', { json: JSON.stringify(r) });
-})().catch((e) => invoke('report', { json: JSON.stringify({ error: String(e) }) }));
+})().catch((e) => { document.getElementById('out').textContent = 'Error: ' + e; invoke('report', { json: JSON.stringify({ error: String(e) }) }); });
+
+document.getElementById('copy').onclick = () => navigator.clipboard.writeText(resultText);
+document.getElementById('play').onclick = async () => { await invoke('load_demo', { bars: 8 }); };
+document.getElementById('stop').onclick = () => cmd([2, 0, 0, 0]);
+
+// chord buttons play on track 0 (the demo's pad synth)
+const press = (notes) => notes.forEach((n) => cmd([4, 0, n, 100]));
+const release = (notes) => notes.forEach((n) => cmd([5, 0, n, 0]));
+const chords = [...document.querySelectorAll('.chord')];
+chords.forEach((b) => {
+  const notes = b.dataset.notes.split(',').map(Number);
+  b.addEventListener('pointerdown', () => press(notes));
+  ['pointerup', 'pointerleave'].forEach((ev) => b.addEventListener(ev, () => release(notes)));
+});
+window.addEventListener('keydown', (e) => { const b = chords[+e.key - 1]; if (b && !e.repeat) b.dispatchEvent(new Event('pointerdown')); });
+window.addEventListener('keyup', (e) => { const b = chords[+e.key - 1]; if (b) b.dispatchEvent(new Event('pointerup')); });
 </script>
 </body>
 </html>
