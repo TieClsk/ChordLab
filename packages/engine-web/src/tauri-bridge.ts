@@ -11,6 +11,7 @@ interface NativeStatus {
   position: number;
   voices: number;
   maxCallbackUs: number;
+  recentMaxCallbackUs: number;
   framesPerCallback: number;
 }
 
@@ -49,6 +50,7 @@ export class TauriBridge implements EngineBridge {
       activeVoices: s.voices,
       bufferFrames: s.framesPerCallback,
       maxProcessUs: s.maxCallbackUs,
+      recentMaxProcessUs: s.recentMaxCallbackUs,
     };
   }
 

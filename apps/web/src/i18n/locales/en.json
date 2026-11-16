@@ -45,6 +45,8 @@
     "selfTest": "Self-test",
     "selfTestRun": "Run self-test (about 6 s)",
     "selfTestRunning": "Testing…",
-    "copy": "Copy results"
+    "copy": "Copy results",
+    "peakRecent": "Callback peak (last second)",
+    "peakSession": "Callback peak (this session)"
   }
 }

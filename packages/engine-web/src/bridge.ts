@@ -10,8 +10,10 @@ export interface EngineStatus {
   activeVoices: number;
   /** Frames rendered per audio callback / render quantum. */
   bufferFrames: number;
-  /** Slowest engine process() call seen so far, in microseconds (native only). */
+  /** Slowest audio callback of the whole session, in microseconds (native only). */
   maxProcessUs?: number;
+  /** Slowest audio callback in about the last second (native only, #48). */
+  recentMaxProcessUs?: number;
 }
 
 /**

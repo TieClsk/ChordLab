@@ -141,6 +141,14 @@ export function Diagnostics({ bridge, error }: Props) {
           <dd>{status ? `${status.bufferFrames} (${((status.bufferFrames / status.sampleRate) * 1000).toFixed(1)} ms)` : '—'}</dd>
           <dt>{t('diagnostics.voices')}</dt>
           <dd data-testid="active-voices">{status?.activeVoices ?? 0}</dd>
+          {status?.recentMaxProcessUs !== undefined && (
+            <>
+              <dt>{t('diagnostics.peakRecent')}</dt>
+              <dd data-testid="peak-recent">{Math.round(status.recentMaxProcessUs)} µs</dd>
+              <dt>{t('diagnostics.peakSession')}</dt>
+              <dd data-testid="peak-session">{Math.round(status.maxProcessUs ?? 0)} µs</dd>
+            </>
+          )}
         </dl>
       </div>
 

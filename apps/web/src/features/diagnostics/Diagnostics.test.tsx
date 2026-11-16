@@ -100,6 +100,9 @@ describe('Diagnostics', () => {
       await vi.advanceTimersByTimeAsync(500);
     });
     expect(screen.getByTestId('active-voices')).toHaveTextContent('3');
+    // #48: callback peaks, last second and whole session (native engine only)
+    expect(screen.getByTestId('peak-recent')).toHaveTextContent('80 µs');
+    expect(screen.getByTestId('peak-session')).toHaveTextContent('900 µs');
     vi.useRealTimers();
   });
 

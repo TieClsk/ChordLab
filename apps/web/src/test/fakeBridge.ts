@@ -18,7 +18,7 @@ export class FakeBridge implements EngineBridge {
     this.projects.push(p);
   }
   async status(): Promise<EngineStatus> {
-    return { kind: this.kind, sampleRate: 48000, positionFrames: 0, activeVoices: this.voices, bufferFrames: 128, device: 'Fake device' };
+    return { kind: this.kind, sampleRate: 48000, positionFrames: 0, activeVoices: this.voices, bufferFrames: 128, device: 'Fake device', maxProcessUs: 900, recentMaxProcessUs: 80 };
   }
   async resume(): Promise<void> {
     this.resumed++;

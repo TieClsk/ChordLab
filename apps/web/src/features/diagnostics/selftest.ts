@@ -9,6 +9,7 @@ export interface SelfTestResult {
   bufferFrames: number;
   bufferMs: number;
   maxProcessUs?: number;
+  recentMaxProcessUs?: number;
   samples: number;
   timeouts: number;
   noteToVoiceMedianMs: number;
@@ -63,6 +64,7 @@ export async function runSelfTest(bridge: EngineBridge, { notes = 30, gapMs = 15
     bufferFrames: s.bufferFrames,
     bufferMs: +((s.bufferFrames / s.sampleRate) * 1000).toFixed(2),
     maxProcessUs: s.maxProcessUs,
+    recentMaxProcessUs: s.recentMaxProcessUs,
     samples: lat.length,
     timeouts,
     noteToVoiceMedianMs: +pct(lat, 0.5).toFixed(2),

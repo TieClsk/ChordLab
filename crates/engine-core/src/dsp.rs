@@ -2,6 +2,18 @@
 //! Only + - * / and comparisons are used on the audio path (no libm calls), so the
 //! native and wasm32 builds produce bit-identical output for the same input.
 
+/// Flushes values below -300 dB to exact zero. Decaying feedback (delay, filters)
+/// would otherwise reach subnormal floats, which are many times slower on x86 (#48).
+/// Comparison-only, so native and wasm32 stay bit-identical.
+#[inline]
+pub fn flush(x: f32) -> f32 {
+    if x.abs() < 1e-15 {
+        0.0
+    } else {
+        x
+    }
+}
+
 /// MIDI note -> Hz table built with repeated multiplication (no powf).
 pub fn midi_table() -> [f32; 128] {
     const SEMI: f64 = 1.059_463_094_359_295_3; // 2^(1/12)
@@ -92,9 +104,9 @@ impl Svf {
     /// `f` = 2*sin(pi*fc/sr) precomputed by `svf_coef`.
     #[inline]
     pub fn lowpass(&mut self, x: f32, f: f32, q: f32) -> f32 {
-        self.low += f * self.band;
+        self.low = flush(self.low + f * self.band);
         let high = x - self.low - q * self.band;
-        self.band += f * high;
+        self.band = flush(self.band + f * high);
         self.low
     }
 }
@@ -252,8 +264,8 @@ impl Delay {
     #[inline]
     pub fn process(&mut self, l: f32, r: f32) -> (f32, f32) {
         let (ol, or) = (self.buf_l[self.pos], self.buf_r[self.pos]);
-        self.buf_l[self.pos] = l + or * self.feedback;
-        self.buf_r[self.pos] = r + ol * self.feedback;
+        self.buf_l[self.pos] = flush(l + or * self.feedback);
+        self.buf_r[self.pos] = flush(r + ol * self.feedback);
         self.pos += 1;
         if self.pos >= self.len {
             self.pos = 0;

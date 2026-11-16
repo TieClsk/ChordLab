@@ -45,6 +45,8 @@
     "selfTest": "自检",
     "selfTestRun": "运行自检（约 6 秒）",
     "selfTestRunning": "自检中…",
-    "copy": "复制结果"
+    "copy": "复制结果",
+    "peakRecent": "回调峰值（最近 1 秒）",
+    "peakSession": "回调峰值（本次运行）"
   }
 }
