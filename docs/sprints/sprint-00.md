@@ -13,12 +13,14 @@
 | — | 开发文档、ADR 0001–0006、贡献规范、Issue/PR 模板 | ✅ |
 | INF-1 | `EngineBridge` 接口与两种实现 | ⏳ |
 | INF-2 | Web 前端骨架 + i18n | ⏳ |
-| SPK-3 | 在开发者真机（macOS/Windows）上跑 `chordlab-desktop` 与 `bench` | ⏳ 需 PO 协助 |
+| UX-S0 | 用户体验测试：真机音频与听感（含 SPK-3），PO 执行，使用 CI 预览安装包 | ⏳ 等预览包构建 |
+| — | 开源许可（ADR-0007）、TDD + UX 测试流程、预览构建流水线 | ✅ |
 
 ## 进展记录
 
 - 11-15 读取 PO 对待确认问题的答复；确定 B 路线。
 - 11-16 完成 Spike 001：14 个问题全部有结论；发现并处理 7 个坑；产出 ADR 0001–0006。
+- 11-16 仓库公开（TieClsk/ChordLab）；首次 CI 全绿；采用 MIT OR Apache-2.0（PR #1）；引入 TDD + 每 Sprint 两次 UX 测试，桌面预览安装包自动构建。
 
 ## 评审（Sprint 末填写）
 

@@ -35,14 +35,14 @@ This file defines how work flows through the ChordLab repo. It applies to every 
 Refs #<issue>
 ```
 
-`type`：feat / fix / docs / refactor / perf / test / chore / spike
+`type`：feat / fix / docs / refactor / perf / test / chore / spike（TDD：`test` 提交在 `feat` 之前）
 `scope`：engine / theory / web / desktop / analyzer / docs / ci …
 
 ## 4. Issue 管理 / Issues
 
 - 一切工作都从 Issue 开始；模板见 `.github/ISSUE_TEMPLATE/`。
 - 标签体系：
-  - 类型 `type:story` `type:bug` `type:spike` `type:chore` `type:docs`
+  - 类型 `type:story` `type:bug` `type:spike` `type:chore` `type:docs` `type:tech-debt` `type:ux-test` `type:ux-feedback`
   - 史诗 `epic:E0-theory` `epic:E1-piano` `epic:E2-lessons` `epic:E3-analysis` `epic:E4-sound` `epic:E5-arrange` `epic:infra`
   - 优先级 `prio:must` `prio:should` `prio:could`
   - 状态 `status:ready` `status:blocked`
@@ -50,8 +50,11 @@ Refs #<issue>
 
 ## 5. 完成定义 / Definition of Done
 
-- [ ] 验收标准全部满足
-- [ ] 单元测试 / 集成测试覆盖新增逻辑，CI 绿
+开发方式为 **TDD**：先提交失败的测试，再实现，再重构。详见 [docs/process/testing.md](docs/process/testing.md)。
+
+- [ ] 验收标准全部满足：可自动化的有测试，其余写进本 Sprint 的 UX 测试脚本
+- [ ] PR 提交历史体现 测试 → 实现 → 重构；新逻辑有测试，CI 绿
+- [ ] 预览安装包构建成功（用于 UX 测试）
 - [ ] 用户可见文本已有中英文
 - [ ] 相关文档已更新（架构变化 → ADR；新模块 → README）
 - [ ] PR 已关联 Issue（`Closes #n`）
