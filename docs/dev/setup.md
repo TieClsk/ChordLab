@@ -32,6 +32,11 @@ cargo build --release -p engine-wasm --target wasm32-unknown-unknown
 cargo run --release -p engine-native --bin chordlab-engine -- raw native.f32
 node experiments/wasm-parity/run.mjs target/wasm32-unknown-unknown/release/engine_wasm.wasm native.f32
 
+# 前端（apps/web）
+pnpm install
+pnpm --filter @chordlab/web dev      # 开发服务器（已带 COOP/COEP 头）
+pnpm test && pnpm lint && pnpm typecheck
+
 # 重新生成前端 TS 类型（模型改动后）
 cargo test -p engine-core --features ts --lib
 
