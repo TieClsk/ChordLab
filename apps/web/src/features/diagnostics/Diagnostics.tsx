@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EngineBridge, EngineStatus } from '@chordlab/engine-web';
 import { demoProject, LIVE_TRACK } from './demoProject';
@@ -41,29 +41,41 @@ export function Diagnostics({ bridge, error }: Props) {
     for (const pitch of notes) bridge?.send({ type: 'noteOff', track: LIVE_TRACK, pitch });
   };
 
+  // Keyboard chords (#42): the held set must outlive re-renders, OS auto-repeat is
+  // ignored, and everything is released when the window loses focus.
+  const held = useRef(new Set<string>());
   useEffect(() => {
-    const held = new Set<string>();
+    if (!bridge) return;
+    const keys = held.current;
+    const play = (notes: number[], on: boolean) => {
+      if (on) void bridge.resume();
+      for (const pitch of notes) bridge.send(on ? { type: 'noteOn', track: LIVE_TRACK, pitch, velocity: 100 } : { type: 'noteOff', track: LIVE_TRACK, pitch });
+    };
     const down = (e: KeyboardEvent) => {
       const c = CHORDS.find((x) => x.key === e.key);
-      if (c && !held.has(c.key)) {
-        held.add(c.key);
-        press(c.notes);
-      }
+      if (!c || e.repeat || keys.has(c.key)) return;
+      keys.add(c.key);
+      play(c.notes, true);
     };
     const up = (e: KeyboardEvent) => {
       const c = CHORDS.find((x) => x.key === e.key);
-      if (c) {
-        held.delete(c.key);
-        release(c.notes);
-      }
+      if (!c || !keys.delete(c.key)) return;
+      play(c.notes, false);
+    };
+    const releaseAll = () => {
+      for (const k of keys) play(CHORDS.find((x) => x.key === k)!.notes, false);
+      keys.clear();
     };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
+    window.addEventListener('blur', releaseAll);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', releaseAll);
+      releaseAll();
     };
-  });
+  }, [bridge]);
 
   if (!bridge) {
     return (
