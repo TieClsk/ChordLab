@@ -5,6 +5,7 @@
     "comingSoon": "Coming soon"
   },
   "nav": {
+    "home": "Home",
     "piano": "Piano",
     "lessons": "Lessons",
     "analysis": "Analysis",
@@ -13,8 +14,12 @@
   },
   "home": {
     "title": "Welcome to ChordLab",
-    "body": "This is the Sprint 0 app shell. Pick a section on the left; sections that are not built yet are marked “Coming soon”.",
-    "sprint": "Current milestone: {{sprint}}"
+    "body": "ChordLab is under construction. The table shows what each module will do and when it is planned; you can already try the audio engine under “Engine check” on the left.",
+    "sprint": "Current milestone: {{sprint}}",
+    "roadmap": "Roadmap",
+    "module": "Module",
+    "what": "What it does",
+    "planned": "Planned"
   },
   "section": {
     "piano": "Play on the keyboard and click a chord to hear and see its notes.",

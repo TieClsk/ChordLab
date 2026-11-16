@@ -101,3 +101,11 @@ body { margin: 0; }
 .status dt { color: var(--muted); }
 .status dd { margin: 0; font-variant-numeric: tabular-nums; }
 .card pre { background: var(--bg); padding: 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; }
+
+.roadmap { border-collapse: collapse; width: 100%; margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.roadmap caption { text-align: left; font-weight: 600; padding: 0 0 8px; }
+.roadmap th, .roadmap td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.roadmap th { color: var(--muted); font-weight: 500; font-size: 13px; }
+.roadmap tr:last-child td { border-bottom: none; }
+.roadmap td:first-child { font-weight: 600; white-space: nowrap; }
+.roadmap td:last-child { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }

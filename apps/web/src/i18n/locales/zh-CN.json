@@ -5,6 +5,7 @@
     "comingSoon": "即将推出"
   },
   "nav": {
+    "home": "首页",
     "piano": "钢琴",
     "lessons": "教程",
     "analysis": "分析",
@@ -13,8 +14,12 @@
   },
   "home": {
     "title": "欢迎来到 ChordLab",
-    "body": "这是 Sprint 0 的应用骨架。从左侧选择一个模块；尚未完成的模块会标注“即将推出”。",
-    "sprint": "当前进度：{{sprint}}"
+    "body": "ChordLab 正在开发中。下表是各模块的用途和计划完成时间；现在可以在左侧的“引擎诊断”里试听音频引擎。",
+    "sprint": "当前进度：{{sprint}}",
+    "roadmap": "路线图",
+    "module": "模块",
+    "what": "用途",
+    "planned": "计划"
   },
   "section": {
     "piano": "在键盘上弹奏，点击和弦即可听到并看到它的组成音。",
