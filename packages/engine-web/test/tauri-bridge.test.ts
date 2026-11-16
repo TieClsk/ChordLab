@@ -39,7 +39,7 @@ describe('TauriBridge', () => {
 
   it('maps native status to the common EngineStatus shape', async () => {
     const { invoke } = fakeInvoke({
-      engine_status: { device: 'Speakers', sampleRate: 48000, position: 96000, voices: 3, callbacks: 10, maxCallbackUs: 120, framesPerCallback: 480 },
+      engine_status: { device: 'Speakers', sampleRate: 48000, position: 96000, voices: 3, callbacks: 10, maxCallbackUs: 120, recentMaxCallbackUs: 45, framesPerCallback: 480 },
     });
     expect(await new TauriBridge(invoke).status()).toEqual({
       kind: 'native',
@@ -49,6 +49,7 @@ describe('TauriBridge', () => {
       activeVoices: 3,
       bufferFrames: 480,
       maxProcessUs: 120,
+      recentMaxProcessUs: 45,
     });
   });
 

@@ -12,6 +12,8 @@ describe('runSelfTest', () => {
     expect(r.noteToVoiceMedianMs).toBeGreaterThanOrEqual(0);
     expect(r.timeouts).toBe(0);
     expect(b.voices).toBe(0); // every test note was released
+    expect(r.recentMaxProcessUs).toBe(80); // #48: both peaks are reported
+    expect(r.maxProcessUs).toBe(900);
   });
 
   it('counts notes that never sounded as timeouts', async () => {
