@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED, type Lang } from './i18n';
+import { Diagnostics } from './features/diagnostics/Diagnostics';
+import { useEngineBridge } from './engine/useEngineBridge';
 import './App.css';
 
-type Section = 'piano' | 'lessons' | 'analysis' | 'arrange';
+type Section = 'piano' | 'lessons' | 'analysis' | 'arrange' | 'diagnostics';
 
 /** Sections and whether they are available yet (Sprint plan: docs/product/backlog.md). */
 const SECTIONS: { id: Section; ready: boolean }[] = [
@@ -11,6 +13,7 @@ const SECTIONS: { id: Section; ready: boolean }[] = [
   { id: 'lessons', ready: true },
   { id: 'analysis', ready: true },
   { id: 'arrange', ready: false },
+  { id: 'diagnostics', ready: true },
 ];
 
 const LANG_LABEL: Record<Lang, string> = { 'zh-CN': '中文', en: 'English' };
@@ -18,6 +21,8 @@ const LANG_LABEL: Record<Lang, string> = { 'zh-CN': '中文', en: 'English' };
 export default function App() {
   const { t, i18n } = useTranslation();
   const [section, setSection] = useState<Section | null>(null);
+  // The engine starts only when a page needs it (browsers also need a user gesture).
+  const engine = useEngineBridge(section === 'diagnostics');
 
   return (
     <div className="shell">
@@ -51,6 +56,8 @@ export default function App() {
             <p>{t('home.body')}</p>
             <p className="muted">{t('home.sprint', { sprint: 'S0' })}</p>
           </>
+        ) : section === 'diagnostics' ? (
+          <Diagnostics bridge={engine.bridge} error={engine.error} />
         ) : (
           <>
             <h2>{t(`nav.${section}`)}</h2>
