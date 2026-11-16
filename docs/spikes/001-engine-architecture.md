@@ -48,11 +48,20 @@
 6. 无头 Chromium 的 Lambda 启动参数会关掉站点隔离，导致 `crossOriginIsolated=false`，测试时需去掉这些参数。
 7. WebKitGTK 中 `performance.now()` 精度约 1 ms，不能用来在 UI 侧做精确计时（引擎侧计时不受影响）。
 
-## 未能在本环境验证（需要在你的 Mac/PC 上复测）
+## 真机验证（SPK-3，#7，2026-11-16）
 
-- 真实声卡下的回调稳定性和输出延迟（容器内的 ALSA 空设备不按真实时间节奏消耗音频，回调数据无效）。
-- macOS（WKWebView）与 Windows（WebView2）下的 Tauri 行为。
-- Web 版在 Safari 中的表现。
+容器内的 ALSA 空设备不按真实时间节奏消耗音频，所以回调时序由产品负责人在真机上用预览安装包验证：
+
+| 指标 | Windows 11 · WebView2（Edge 157）· Realtek 耳机 |
+| --- | --- |
+| 声卡缓冲 | 480 帧 @ 48 kHz = 10 ms |
+| 回调 | 100 次/秒；2 秒推进 2.0 秒音频（无丢块） |
+| 最长回调 | 155 µs（预算的 1.6%） |
+| IPC 往返 | 中位 1 ms，P95 1.8 ms |
+| 命令 → 发声 | 中位 6.5 ms，P95 11.1 ms |
+| 听感 | 无阻断级问题；“声音有些生硬”（演示编曲与测试音色）→ #36 |
+
+仍待验证：macOS（WKWebView + CoreAudio）、Web 版在 Safari 中的表现。
 
 ## 对架构的影响
 
