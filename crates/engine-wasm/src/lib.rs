@@ -76,6 +76,36 @@ pub unsafe extern "C" fn cl_add_sample(id: u32, ptr: *const f32, len: usize, sam
     st().engine.add_sample(id, data, sample_rate);
 }
 
+/// Register an i16 sample, mono (`channels` = 1) or interleaved stereo (2). Data is
+/// copied. Returns 0 on success, -1 for invalid input (#8).
+///
+/// # Safety
+/// `ptr` must point to `len` initialised, aligned `i16` values in linear memory.
+#[no_mangle]
+pub unsafe extern "C" fn cl_add_sample_i16(
+    id: u32,
+    ptr: *const i16,
+    len: usize,
+    channels: u32,
+    sample_rate: f32,
+) -> i32 {
+    let data = core::slice::from_raw_parts(ptr, len).to_vec();
+    if st()
+        .engine
+        .add_sample_i16(id, data, channels as u8, sample_rate)
+    {
+        0
+    } else {
+        -1
+    }
+}
+
+/// Bytes of sample data held by the engine.
+#[no_mangle]
+pub extern "C" fn cl_sample_memory_bytes() -> u32 {
+    st().engine.sample_memory_bytes() as u32
+}
+
 /// Apply one 16-byte command (see `engine_core::Command::encode`). Returns 0 if valid.
 #[no_mangle]
 pub extern "C" fn cl_command(a: u32, b: u32, c: u32, d: u32) -> i32 {

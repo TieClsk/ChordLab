@@ -17,6 +17,7 @@ interface EngineExports {
   cl_free(ptr: number, len: number): void;
   cl_load_project(ptr: number, len: number): number;
   cl_add_sample(id: number, ptr: number, len: number, sr: number): void;
+  cl_add_sample_i16(id: number, ptr: number, len: number, channels: number, sr: number): number;
   cl_command(a: number, b: number, c: number, d: number): number;
   cl_process(frames: number): void;
   cl_out_l(): number;
@@ -28,6 +29,7 @@ interface EngineExports {
 type Msg =
   | { type: 'project'; bytes: Uint8Array }
   | { type: 'sample'; id: number; data: Float32Array; sampleRate: number }
+  | { type: 'sample-i16'; id: number; data: Int16Array; channels: 1 | 2; sampleRate: number }
   | { type: 'command'; w: [number, number, number, number] };
 
 interface Options {
@@ -77,6 +79,12 @@ class ChordLabProcessor extends AudioWorkletProcessor {
       const [p, n] = this.copyIn(bytes);
       x.cl_add_sample(m.id, p, m.data.length, m.sampleRate);
       x.cl_free(p, n);
+    } else if (m.type === 'sample-i16') {
+      const bytes = new Uint8Array(m.data.buffer, m.data.byteOffset, m.data.byteLength);
+      const [p, n] = this.copyIn(bytes);
+      const rc = x.cl_add_sample_i16(m.id, p, m.data.length, m.channels, m.sampleRate);
+      x.cl_free(p, n);
+      this.port.postMessage({ type: 'sample-added', id: m.id, ok: rc === 0 });
     } else if (m.type === 'command') {
       x.cl_command(m.w[0], m.w[1], m.w[2], m.w[3]);
     }

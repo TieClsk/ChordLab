@@ -10,12 +10,23 @@ fn sampler_project(pan: f32) -> Project {
         delay_beats: 0.5,
         tracks: vec![Track {
             name: "piano".into(),
-            instrument: Instrument::Sampler { zones: vec![SampleZone::full(0, 60)], release_s: 0.05 },
+            instrument: Instrument::Sampler {
+                zones: vec![SampleZone::full(0, 60)],
+                release_s: 0.05,
+            },
             gain: 1.0,
             pan,
             mute: false,
             delay_send: 0.0,
-            clips: vec![Clip { start_beat: 0.0, notes: vec![Note { start: 0.0, length: 0.5, pitch: 60, velocity: 127 }] }],
+            clips: vec![Clip {
+                start_beat: 0.0,
+                notes: vec![Note {
+                    start: 0.0,
+                    length: 0.5,
+                    pitch: 60,
+                    velocity: 127,
+                }],
+            }],
         }],
     }
 }
@@ -55,7 +66,12 @@ fn f32_input_is_converted_to_i16_within_one_step() {
     let pan = 0.75f32;
     for i in [200usize, 1000, 1999] {
         let expected = data[i] * pan;
-        assert!((l[i] - expected).abs() < 2.0 / 32768.0 + 1e-6, "frame {i}: {} vs {}", l[i], expected);
+        assert!(
+            (l[i] - expected).abs() < 2.0 / 32768.0 + 1e-6,
+            "frame {i}: {} vs {}",
+            l[i],
+            expected
+        );
     }
 }
 
@@ -109,6 +125,9 @@ fn stereo_sample_is_pitch_shifted_like_mono() {
 fn rejects_channel_counts_other_than_one_or_two() {
     let mut e = Engine::new(SR);
     assert!(!e.add_sample_i16(0, vec![0; 30], 3, SR));
-    assert!(!e.add_sample_i16(0, vec![0; 31], 2, SR), "odd length cannot be interleaved stereo");
+    assert!(
+        !e.add_sample_i16(0, vec![0; 31], 2, SR),
+        "odd length cannot be interleaved stereo"
+    );
     assert!(e.add_sample_i16(0, vec![0; 30], 2, SR));
 }

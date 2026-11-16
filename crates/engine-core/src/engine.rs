@@ -90,9 +90,24 @@ impl Command {
     }
 }
 
+/// PCM sample stored as i16 (#8: half the memory of f32), mono or interleaved stereo.
 pub struct Sample {
-    pub data: Vec<f32>,
+    pub data: Vec<i16>,
+    pub channels: u8,
     pub sample_rate: f32,
+}
+
+impl Sample {
+    pub fn frames(&self) -> usize {
+        self.data.len() / self.channels as usize
+    }
+}
+
+const I16_SCALE: f32 = 1.0 / 32768.0;
+
+/// Deterministic f32 -> i16 (saturating cast, no libm), identical on native and wasm32.
+fn to_i16(x: f32) -> i16 {
+    (x * 32768.0) as i16
 }
 
 struct TrackState {
@@ -222,12 +237,43 @@ impl Engine {
         self.voices.iter().filter(|v| v.active).count()
     }
 
+    /// Adds a mono f32 sample (converted to i16). Allocates: call off the audio thread.
     pub fn add_sample(&mut self, id: u32, data: Vec<f32>, sample_rate: f32) {
+        let pcm = data.into_iter().map(to_i16).collect();
+        self.add_sample_i16(id, pcm, 1, sample_rate);
+    }
+
+    /// Adds an i16 sample, mono (`channels` = 1) or interleaved stereo (2).
+    /// Returns false (and keeps the old sample) for invalid input.
+    pub fn add_sample_i16(
+        &mut self,
+        id: u32,
+        data: Vec<i16>,
+        channels: u8,
+        sample_rate: f32,
+    ) -> bool {
+        if !(channels == 1 || channels == 2) || !data.len().is_multiple_of(channels as usize) {
+            return false;
+        }
         let id = id as usize;
         if self.samples.len() <= id {
             self.samples.resize_with(id + 1, || None);
         }
-        self.samples[id] = Some(Sample { data, sample_rate });
+        self.samples[id] = Some(Sample {
+            data,
+            channels,
+            sample_rate,
+        });
+        true
+    }
+
+    /// Bytes held by sample data (for memory budgets, ADR-0005).
+    pub fn sample_memory_bytes(&self) -> usize {
+        self.samples
+            .iter()
+            .flatten()
+            .map(|s| s.data.len() * 2)
+            .sum()
     }
 
     /// Compile the project into a sorted event list. Allocates.
@@ -514,7 +560,7 @@ impl Engine {
                     continue;
                 }
                 let ts = &self.tracks[v.track as usize];
-                let s = match v.kind {
+                let (yl, yr) = match v.kind {
                     Kind::Synth => {
                         let raw = match v.wave {
                             Wave::Saw => 0.5 * (v.osc.saw(v.dt) + v.osc2.saw(v.dt * 1.003)),
@@ -525,7 +571,8 @@ impl Engine {
                         if v.env.stage == Stage::Idle {
                             v.active = false;
                         }
-                        y * e * 0.3
+                        let m = y * e * 0.3;
+                        (m, m)
                     }
                     Kind::Sampler => {
                         let Some(Some(smp)) = self.samples.get(v.sample) else {
@@ -533,18 +580,29 @@ impl Engine {
                             continue;
                         };
                         let idx = v.spos as usize;
-                        if idx + 1 >= smp.data.len() {
+                        if idx + 1 >= smp.frames() {
                             v.active = false;
                             continue;
                         }
                         let frac = (v.spos - idx as f64) as f32;
-                        let y = smp.data[idx] + (smp.data[idx + 1] - smp.data[idx]) * frac;
+                        let ch = smp.channels as usize;
+                        let lerp = |c: usize| {
+                            let a = smp.data[idx * ch + c] as f32 * I16_SCALE;
+                            let b = smp.data[(idx + 1) * ch + c] as f32 * I16_SCALE;
+                            a + (b - a) * frac
+                        };
+                        let (a, b) = if ch == 2 {
+                            (lerp(0), lerp(1))
+                        } else {
+                            let m = lerp(0);
+                            (m, m)
+                        };
                         v.spos += v.sstep;
                         let e = v.env.tick();
                         if v.env.stage == Stage::Idle {
                             v.active = false;
                         }
-                        y * e
+                        (a * e, b * e)
                     }
                     Kind::Drum => {
                         v.t += 1;
@@ -567,17 +625,19 @@ impl Engine {
                         if v.level < 0.0005 {
                             v.active = false;
                         }
-                        y * v.level
+                        let m = y * v.level;
+                        (m, m)
                     }
                 };
                 if ts.mute {
                     continue;
                 }
-                let g = s * v.amp * ts.gain;
-                l += g * ts.pan_l;
-                r += g * ts.pan_r;
-                sl += g * ts.pan_l * ts.send;
-                sr_send += g * ts.pan_r * ts.send;
+                let gl = yl * v.amp * ts.gain;
+                let gr = yr * v.amp * ts.gain;
+                l += gl * ts.pan_l;
+                r += gr * ts.pan_r;
+                sl += gl * ts.pan_l * ts.send;
+                sr_send += gr * ts.pan_r * ts.send;
             }
             let (dl, dr) = self.delay.process(sl, sr_send);
             out_l[k] = soft_clip((l + dl) * self.master);
