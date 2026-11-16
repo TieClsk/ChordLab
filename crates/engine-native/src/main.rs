@@ -116,6 +116,7 @@ fn poly_project(n: usize, kind: &str) -> Project {
     Project {
         tempo_bpm: 120.0,
         master_gain: 0.2,
+        delay_beats: 0.5,
         tracks: vec![Track {
             name: "t".into(),
             instrument: inst,

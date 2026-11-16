@@ -134,6 +134,7 @@ pub fn demo_project(with_sampler: bool, bars: u32) -> Project {
     Project {
         tempo_bpm: 120.0,
         master_gain: 0.8,
+        delay_beats: 0.5,
         tracks,
     }
 }

@@ -38,6 +38,7 @@ export function demoProject(): Project {
   return {
     tempo_bpm: 100,
     master_gain: 0.8,
+    delay_beats: 0.5, // echoes on the eighth-note grid (#43)
     tracks: [
       { name: 'Pad', instrument: synth(2000, 0.06, 0.5, 'saw'), gain: 0.5, pan: -0.15, mute: false, delay_send: 0.2, clips: [{ start_beat: 0, notes: pad }] },
       { name: 'Bass', instrument: synth(650, 0.005, 0.08, 'square'), gain: 0.55, pan: 0, mute: false, delay_send: 0, clips: [{ start_beat: 0, notes: bass }] },
